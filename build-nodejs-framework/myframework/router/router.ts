@@ -1,5 +1,5 @@
-import { IMethodCallback } from "./domain.ts/requests";
-import { IRouteTable } from "./domain.ts/router";
+import { IMethodCallback } from "./domain.ts/irequests";
+import { IRouteTable } from "./domain.ts/irouter";
 import { pathNameToRegex } from "./helper";
 
 export class Router {

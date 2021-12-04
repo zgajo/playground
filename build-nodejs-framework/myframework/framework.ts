@@ -1,6 +1,6 @@
 import * as http from "http";
 import { Router } from "./router";
-import { TMethods } from "./router/domain.ts/router";
+import { TMethods } from "./router/domain.ts/irouter";
 
 import { RequestParser } from "./router/requestParser";
 

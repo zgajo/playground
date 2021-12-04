@@ -1,7 +1,6 @@
 import * as http from "http";
-import { IRequest } from "./domain.ts/requests";
-import { IRouteTable, TMethods } from "./domain.ts/router";
-import { pathNameToRegex } from "./helper";
+import { IRequest } from "./domain.ts/irequests";
+import { IRouteTable, TMethods } from "./domain.ts/irouter";
 
 export class RequestParser {
   url: URL;

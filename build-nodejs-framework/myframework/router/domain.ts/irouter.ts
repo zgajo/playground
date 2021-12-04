@@ -1,4 +1,4 @@
-import { IMethodCallback } from "./requests";
+import { IMethodCallback } from "./irequests";
 
 export type TMethods = "get" | "post" | "delete" | "patch";
 
