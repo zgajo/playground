@@ -4,8 +4,6 @@ import { pathNameToRegex } from "./router/helper";
 import { RequestParser } from "./router/requestParser";
 const networkInterfaces = require("os").networkInterfaces();
 
-const requestParser = new RequestParser();
-
 export class Framework extends Router {
   server: http.Server;
 
@@ -13,34 +11,29 @@ export class Framework extends Router {
     super();
 
     this.server = http.createServer((req, res) =>
-      this.createServerListener(req, res)
+      this.serverListener(req, res)
     );
   }
 
-  async createServerListener(
-    req: http.IncomingMessage,
-    res: http.ServerResponse
-  ) {
-    let method = req.method.toLowerCase();
+  async serverListener(req: http.IncomingMessage, res: http.ServerResponse) {
+    const { request, method, pathName } = new RequestParser(req);
 
+    this.checkPaths(method, pathName, res);
+
+    this.routeTable[method][pathName](request, res);
+  }
+
+  checkPaths(method: string, pathName: string, res: http.ServerResponse) {
     if (!this.routeTable[method]) {
       res.statusCode = 501;
       return res.end("No method /" + method);
     }
-
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const pathName = pathNameToRegex(url.pathname);
 
     if (!this.routeTable[method][pathName]) {
       res.statusCode = 501;
 
       return res.end(`No route ${pathName} found for method /${method}`);
     }
-
-    // Create query, params and body object with data
-    const request = await requestParser.parse(req);
-
-    this.routeTable[method][pathName](request, res);
   }
 
   listen(port: number, callback?: Function) {

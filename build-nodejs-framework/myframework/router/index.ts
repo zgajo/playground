@@ -1,5 +1,6 @@
 import * as http from "http";
 import { pathNameToRegex } from "./helper";
+import { RequestParser } from "./requestParser";
 
 type IMethodCallback = (
   req: http.IncomingMessage,
