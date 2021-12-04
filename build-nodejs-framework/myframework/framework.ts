@@ -1,29 +1,60 @@
 import * as http from "http";
+import { Router } from "./router";
+import { pathNameToRegex } from "./router/helper";
+import { RequestParser } from "./router/requestParser";
 const networkInterfaces = require("os").networkInterfaces();
 
-import { Router } from "./router";
-import { RequestParser } from "./router/helper";
+const requestParser = new RequestParser();
 
 export class Framework extends Router {
   server: http.Server;
 
   constructor() {
     super();
-    const requestParser = new RequestParser();
-    this.server = http.createServer((req, res) => {
-      requestParser.parse(req);
-      console.log("Now we have a http message with headers but no data yet.");
-      req.on("data", (chunk) => {
-        console.log("A chunk of data has arrived: ", chunk);
-      });
-      req.on("end", () => {
-        console.log("No more data");
-      });
-    });
+
+    this.server = http.createServer((req, res) =>
+      this.createServerListener(req, res)
+    );
+  }
+
+  async createServerListener(
+    req: http.IncomingMessage,
+    res: http.ServerResponse
+  ) {
+    let method = req.method.toLowerCase();
+
+    switch (method) {
+      case "get":
+        method = "get";
+        break;
+
+      default:
+        break;
+    }
+
+    if (!this.routeTable[method].) {
+      res.statusCode = 501;
+      return res.end("No method /" + method);
+    }
+
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    const pathName = pathNameToRegex(url.pathname);
+
+    if (!this.routeTable[method][pathName]) {
+      res.statusCode = 501;
+
+      return res.end(`No route ${pathName} found for method /${method}`);
+    }
+
+    // Create query, params and body object with data
+    const request = await requestParser.parse(req);
+
+    this.routeTable[method][pathName](request, res);
   }
 
   listen(port: number, callback?: Function) {
     try {
+      console.log("1");
       this.server.listen(port);
 
       callback(port);

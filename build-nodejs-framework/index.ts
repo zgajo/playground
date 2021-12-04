@@ -21,7 +21,7 @@ app.get("/", (_req, res) => {
   res.end("hello world");
 });
 
-app.listen(3000, (port) => {
+app.listen(2000, (port) => {
   console.log(
     `Listening on adress http://${networkInterfaces.eth0[0].address}:${port}`
   );

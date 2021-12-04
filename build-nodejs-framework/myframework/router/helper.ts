@@ -1,37 +1,23 @@
-import * as http from "http";
-import { URLSearchParams } from "url";
+export function pathNameToRegex(url) {
+  let str = "";
 
-interface IRequest extends http.IncomingMessage {
-  params: {};
-  query: {};
-  body: {};
-}
-
-export class RequestParser {
-  constructor() {}
-
-  parse(req: http.IncomingMessage) {
-    let request: IRequest = {
-      ...req,
-      params: {},
-      query: {},
-      body: {},
-    } as IRequest;
-
-    const url = new URL(req.url, `http://${req.headers.host}`);
-
-    request = this.parseParams(url.pathname);
-    request = this.parseQuery(url.searchParams);
-    // request = this.parseBody();
+  for (var i = 0; i < url.length; i++) {
+    const c = url.charAt(i);
+    if (c === ":") {
+      // eat all characters
+      let param = "";
+      for (var j = i + 1; j < url.length; j++) {
+        if (/\w/.test(url.charAt(j))) {
+          param += url.charAt(j);
+        } else {
+          break;
+        }
+      }
+      str += `(?<${param}>\\w+)`;
+      i = j - 1;
+    } else {
+      str += c;
+    }
   }
-
-  parseParams(pathname: string): IRequest {
-    return;
-  }
-  parseQuery(queryParams: URLSearchParams): IRequest {
-    return;
-  }
-  parseBody(path): IRequest {
-    return;
-  }
+  return str;
 }
