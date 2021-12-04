@@ -1,10 +1,9 @@
-import { IMethodCallback, TMethods } from "./domain.ts/requests";
+import { IMethodCallback } from "./domain.ts/requests";
+import { IRouteTable } from "./domain.ts/router";
 import { pathNameToRegex } from "./helper";
 
 export class Router {
-  routeTable: {
-    [K in TMethods]: { [pathname: string]: IMethodCallback };
-  };
+  routeTable: IRouteTable;
 
   constructor() {
     this.routeTable = {
