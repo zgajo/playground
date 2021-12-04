@@ -23,16 +23,7 @@ export class Framework extends Router {
   ) {
     let method = req.method.toLowerCase();
 
-    switch (method) {
-      case "get":
-        method = "get";
-        break;
-
-      default:
-        break;
-    }
-
-    if (!this.routeTable[method].) {
+    if (!this.routeTable[method]) {
       res.statusCode = 501;
       return res.end("No method /" + method);
     }
