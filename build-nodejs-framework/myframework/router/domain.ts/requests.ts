@@ -7,5 +7,3 @@ export interface IRequest extends http.IncomingMessage {
 }
 
 export type IMethodCallback = (req: IRequest, res: http.ServerResponse) => void;
-
-export type TMethods = "get" | "post" | "delete" | "patch";
