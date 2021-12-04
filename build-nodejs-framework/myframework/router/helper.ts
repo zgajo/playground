@@ -1,3 +1,8 @@
+/**
+ *
+ * @param url /products/:id
+ * @returns /products/(?<id>\\w+)
+ */
 export function pathNameToRegex(url) {
   let str = "";
 
