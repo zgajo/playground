@@ -1,13 +1,5 @@
-import * as http from "http";
+import { IMethodCallback, TMethods } from "./domain.ts/requests";
 import { pathNameToRegex } from "./helper";
-import { RequestParser } from "./requestParser";
-
-type IMethodCallback = (
-  req: http.IncomingMessage,
-  res: http.ServerResponse
-) => void;
-
-type TMethods = "get" | "post" | "delete" | "patch";
 
 export class Router {
   routeTable: {

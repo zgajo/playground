@@ -1,17 +1,11 @@
 import * as http from "http";
-import { URLSearchParams } from "url";
+import { IRequest, TMethods } from "./domain.ts/requests";
 import { pathNameToRegex } from "./helper";
-
-interface IRequest extends http.IncomingMessage {
-  params: {};
-  query: {};
-  body: {};
-}
 
 export class RequestParser {
   url: URL;
   pathName: string;
-  method: string;
+  method: TMethods;
   request: IRequest;
 
   constructor(req: http.IncomingMessage) {
@@ -24,7 +18,8 @@ export class RequestParser {
     this.url = new URL(req.url, `http://${req.headers.host}`);
 
     this.pathName = pathNameToRegex(this.url.pathname);
-    this.method = req.method.toLowerCase();
+
+    this.parseMethod(req.method.toLowerCase());
 
     this.parseBody(req);
     this.parseParams();
@@ -33,6 +28,26 @@ export class RequestParser {
 
   findRoute(req: http.IncomingMessage) {
     req.method.toLowerCase();
+  }
+
+  parseMethod(met: string) {
+    switch (met) {
+      case "get":
+        this.method = "get";
+        break;
+      case "delete":
+        this.method = "delete";
+        break;
+      case "post":
+        this.method = "post";
+        break;
+      case "patch":
+        this.method = "patch";
+        break;
+
+      default:
+        break;
+    }
   }
 
   parseParams() {

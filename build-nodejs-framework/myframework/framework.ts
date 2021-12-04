@@ -1,8 +1,7 @@
 import * as http from "http";
 import { Router } from "./router";
-import { pathNameToRegex } from "./router/helper";
+import { TMethods } from "./router/domain.ts/requests";
 import { RequestParser } from "./router/requestParser";
-const networkInterfaces = require("os").networkInterfaces();
 
 export class Framework extends Router {
   server: http.Server;
@@ -16,23 +15,27 @@ export class Framework extends Router {
   }
 
   async serverListener(req: http.IncomingMessage, res: http.ServerResponse) {
-    const { request, method, pathName } = new RequestParser(req);
+    try {
+      const { request, method, pathName } = new RequestParser(req);
 
-    this.checkPaths(method, pathName, res);
+      this.checkPaths(method, pathName);
 
-    this.routeTable[method][pathName](request, res);
+      // execute the router callback function
+      this.routeTable[method][pathName](request, res);
+    } catch (error) {
+      res.statusCode = 501;
+
+      return res.end(error.message);
+    }
   }
 
-  checkPaths(method: string, pathName: string, res: http.ServerResponse) {
+  checkPaths(method: TMethods, pathName: string) {
     if (!this.routeTable[method]) {
-      res.statusCode = 501;
-      return res.end("No method /" + method);
+      throw new Error("No method /" + method);
     }
 
     if (!this.routeTable[method][pathName]) {
-      res.statusCode = 501;
-
-      return res.end(`No route ${pathName} found for method /${method}`);
+      throw new Error(`No route ${pathName} found for method /${method}`);
     }
   }
 
