@@ -1,5 +1,6 @@
 import * as http from "http";
-import { IRequest, TMethods } from "./domain.ts/requests";
+import { IRequest } from "./domain.ts/requests";
+import { IRouteTable, TMethods } from "./domain.ts/router";
 import { pathNameToRegex } from "./helper";
 
 export class RequestParser {
@@ -8,26 +9,33 @@ export class RequestParser {
   method: TMethods;
   request: IRequest;
 
-  constructor(req: http.IncomingMessage) {
-    this.request = <IRequest>{
+  constructor(req: http.IncomingMessage, routeTable: IRouteTable) {
+    this.parseMethod(req.method.toLowerCase());
+    this.url = new URL(req.url, `http://${req.headers.host}`);
+
+    this.request = {
       ...req,
       params: {},
       query: {},
       body: {},
-    };
-    this.url = new URL(req.url, `http://${req.headers.host}`);
+    } as IRequest;
 
-    this.pathName = pathNameToRegex(this.url.pathname);
-
-    this.parseMethod(req.method.toLowerCase());
-
+    this.parsePathNameAndParams(routeTable);
     this.parseBody(req);
-    this.parseParams();
     this.parseQuery();
   }
 
-  findRoute(req: http.IncomingMessage) {
-    req.method.toLowerCase();
+  parsePathNameAndParams(routeTable: IRouteTable) {
+    Object.keys(routeTable[this.method]).forEach((regexPath) => {
+      const match = this.url.pathname.match(new RegExp(regexPath));
+
+      // Doing this extra check because getting the matching result for "/" === "/products/:id"
+      if (match && match[0] === match.input) {
+        this.pathName = regexPath;
+        this.request.params = { ...match.groups };
+        return;
+      }
+    });
   }
 
   parseMethod(met: string) {
@@ -48,11 +56,6 @@ export class RequestParser {
       default:
         break;
     }
-  }
-
-  parseParams() {
-    // pathname.match(new RegExp());
-    return;
   }
 
   parseQuery() {

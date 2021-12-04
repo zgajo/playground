@@ -1,6 +1,7 @@
 import * as http from "http";
 import { Router } from "./router";
-import { TMethods } from "./router/domain.ts/requests";
+import { TMethods } from "./router/domain.ts/router";
+
 import { RequestParser } from "./router/requestParser";
 
 export class Framework extends Router {
@@ -16,7 +17,10 @@ export class Framework extends Router {
 
   async serverListener(req: http.IncomingMessage, res: http.ServerResponse) {
     try {
-      const { request, method, pathName } = new RequestParser(req);
+      const { request, method, pathName } = new RequestParser(
+        req,
+        this.routeTable
+      );
 
       this.checkPaths(method, pathName);
 
@@ -30,6 +34,7 @@ export class Framework extends Router {
   }
 
   checkPaths(method: TMethods, pathName: string) {
+    console.log(method, pathName);
     if (!this.routeTable[method]) {
       throw new Error("No method /" + method);
     }
