@@ -25,7 +25,7 @@ export class RequestParser {
   }
 
   parsePathNameAndParams(routeTable: IRouteTable) {
-    Object.keys(routeTable[this.method]).forEach((regexPath) => {
+    for (const regexPath of Object.keys(routeTable[this.method])) {
       const match = this.url.pathname.match(new RegExp(regexPath));
 
       // Doing this extra check because getting the matching result for "/" === "/products/:id"
@@ -34,7 +34,7 @@ export class RequestParser {
         this.request.params = { ...match.groups };
         return;
       }
-    });
+    }
   }
 
   parseMethod(met: string) {

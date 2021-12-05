@@ -18,7 +18,7 @@ const app = myframework();
 
 app.get("/", (_req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("hello world");
+  res.end("hello world /");
 });
 
 app.get("/seloneveselo/:id", (req, res) => {
@@ -42,7 +42,5 @@ app.get("/products/:id/student/:studentId", (req, res) => {
 });
 
 app.listen(2000, (port) => {
-  console.log(
-    `Listening on adress http://${networkInterfaces.eth0[0].address}:${port}`
-  );
+  console.log(`Listening on adress http://localhost:${port}`);
 });
