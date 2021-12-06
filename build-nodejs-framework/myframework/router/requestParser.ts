@@ -7,10 +7,15 @@ export class RequestParser {
   pathName: string;
   method: TMethods;
   request: IRequest;
+  routeTable: IRouteTable;
+  req: http.IncomingMessage;
 
   constructor(req: http.IncomingMessage, routeTable: IRouteTable) {
-    this.parseMethod(req.method.toLowerCase());
+    this.req = req;
+    this.parseMethod();
+
     this.url = new URL(req.url, `http://${req.headers.host}`);
+    this.routeTable = routeTable;
 
     this.request = {
       ...req,
@@ -18,27 +23,39 @@ export class RequestParser {
       query: {},
       body: {},
     } as IRequest;
-
-    this.parsePathNameAndParams(routeTable);
-    this.parseBody(req);
-    this.parseQuery();
   }
 
-  parsePathNameAndParams(routeTable: IRouteTable) {
-    for (const regexPath of Object.keys(routeTable[this.method])) {
+  parsePathName() {
+    for (const regexPath of Object.keys(this.routeTable[this.method])) {
       const match = this.url.pathname.match(new RegExp(regexPath));
 
       // Doing this extra check because getting the matching result for "/" === "/products/:id"
       if (match && match[0] === match.input) {
         this.pathName = regexPath;
-        this.request.params = { ...match.groups };
-        return;
+
+        return this;
       }
     }
+
+    return this;
   }
 
-  parseMethod(met: string) {
-    switch (met) {
+  parseParams() {
+    for (const regexPath of Object.keys(this.routeTable[this.method])) {
+      const match = this.url.pathname.match(new RegExp(regexPath));
+
+      // Doing this extra check because getting the matching result for "/" === "/products/:id"
+      if (match && match[0] === match.input) {
+        this.request.params = { ...match.groups };
+        return this;
+      }
+    }
+
+    return this;
+  }
+
+  private parseMethod() {
+    switch (this.req.method.toLowerCase()) {
       case "get":
         this.method = "get";
         break;
@@ -55,6 +72,7 @@ export class RequestParser {
       default:
         break;
     }
+    return this;
   }
 
   parseQuery() {
@@ -65,8 +83,10 @@ export class RequestParser {
     }
 
     this.request.query = query;
+
+    return this;
   }
-  async parseBody(req: http.IncomingMessage) {
+  async parseBody() {
     /**
      * The key thing to understand is that when you initialize the HTTP server using http.createServer(), the callback is called when the server got all the HTTP headers, but not the request body.
      * So to access the data, we must concatenate the chunks into a string when listening to the stream data, and when the stream end, we parse the string to JSON:
@@ -74,7 +94,7 @@ export class RequestParser {
      */
     const buffers = [];
 
-    for await (const chunk of req) {
+    for await (const chunk of this.req) {
       buffers.push(chunk);
     }
 
@@ -83,5 +103,7 @@ export class RequestParser {
     const body = JSON.parse(data);
 
     this.request.body = body;
+
+    return this;
   }
 }

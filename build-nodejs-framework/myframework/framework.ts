@@ -17,30 +17,21 @@ export class Framework extends Router {
 
   async serverListener(req: http.IncomingMessage, res: http.ServerResponse) {
     try {
-      const { request, method, pathName } = new RequestParser(
-        req,
-        this.routeTable
-      );
+      const { request, method, pathName } = (
+        await this.useRequestParser(req).parseBody()
+      )
+        .parseParams()
+        .parsePathName()
+        .parseQuery();
 
-      this.checkPaths(method, pathName);
+      const cb = this.findRouteCallback(method, pathName);
 
-      // execute the router callback function
-      this.routeTable[method][pathName](request, res);
+      this.setCallbackFunction(cb).executeResponse(request, res);
     } catch (error) {
       res.statusCode = 501;
+      console.log(error);
 
       return res.end(error.message);
-    }
-  }
-
-  checkPaths(method: TMethods, pathName: string) {
-    console.log(method, pathName);
-    if (!this.routeTable[method]) {
-      throw new Error("No method /" + method);
-    }
-
-    if (!this.routeTable[method][pathName]) {
-      throw new Error(`No route ${pathName} found for method /${method}`);
     }
   }
 
