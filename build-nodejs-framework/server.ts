@@ -16,6 +16,16 @@ import myframework from "./myframework";
 
 const app = myframework();
 
+app.use((req, res, next) => {
+  console.log("middleware");
+  next();
+});
+
+app.use((req, res, next) => {
+  console.log("middleware 2");
+  next();
+});
+
 app.get("/", (_req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
   res.end("hello world /");
