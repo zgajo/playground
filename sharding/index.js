@@ -46,13 +46,35 @@ const clients = {
 app.get("/", (req, res) => {
   res.send("");
 });
+
+app.get("/:urlId", async (req, res) => {
+  try {
+    const urlId = req.params.urlId;
+
+    const server = hr.get(urlId);
+
+    const result = await clients[server].query(
+      "select * from url_table where url_id = $1",
+      [urlId]
+    );
+
+    res.send({
+      urlId: urlId,
+      result: result.rows,
+      server: server,
+    });
+  } catch (error) {
+    console.log("err", error);
+  }
+});
+
 app.post("/", async (req, res) => {
   try {
     const url = req.query.url;
     //www.wikipedia.com/sharding
     //consistently hash this to get a port!
     const hash = crypto.createHash("sha256").update(url).digest("base64");
-    const urlId = hash.substr(0, 5);
+    const urlId = hash.substring(0, 5);
 
     const server = hr.get(urlId);
 
