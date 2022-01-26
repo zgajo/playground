@@ -30,6 +30,7 @@ export const graphToGdfs = (props: IGraphToGdfs) => {
     k: number[] = [],
     data: any[] = [],
     highway: any[][] = [],
+    highwayTypes: string[] = [],
     maxspeed: any[][] = [],
     name: any[][] = [],
     length: any[][] = [];
@@ -63,6 +64,7 @@ export const graphToGdfs = (props: IGraphToGdfs) => {
         data,
         k,
         highway,
+        highwayTypes,
         ...(maxspeed.length ? { maxspeed } : null),
         name,
         length,

@@ -14,15 +14,23 @@ export const addEdgeSpeeds = (
     k: number[];
     data: any[];
     highway: any[][];
+    highwayTypes: string[];
     maxspeed?: any[][];
     name: any[][];
     length: any[][];
   };
 
   if (edges) {
-    edges.highway = edges.highway.map((el) => {
+    const highways = edges.highway;
+
+    highways.map((el) => {
       if (el[1]?.constructor.name === "Object") {
-        return [el[0], new Set(el[1])[0]];
+        const highwayType = [...el[1]][0];
+
+        if (!edges.highwayTypes.includes(highwayType)) {
+          edges.highwayTypes.push(highwayType);
+        }
+        return [el[0], highwayType];
       }
       return el;
     });
@@ -41,7 +49,7 @@ export const addEdgeSpeeds = (
         return el;
       });
 
-      edges["speed_kph"] = edges.maxspeed;
+      edges["speed_kph"] = edges.maxspeed.filter((el) => el[1] >= 0);
     } else {
       edges["speed_kph"] = null;
     }
