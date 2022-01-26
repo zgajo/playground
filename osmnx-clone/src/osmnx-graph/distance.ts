@@ -1,5 +1,6 @@
 import { KM_TO_METERS } from "../utils/helper";
 import { Graph } from "./graph";
+import { calcCrow } from "./graphHelper";
 
 const EARTH_RADIUS_M = 6371009;
 
@@ -53,30 +54,6 @@ export class Distance {
     lng2: number[],
     earthRadius = EARTH_RADIUS_M
   ) {
-    //This function takes in latitude and longitude of two location and returns the distance between them as the crow flies (in km)
-    function calcCrow(lat1: number, lon1: number, lat2: number, lon2: number) {
-      var EARTH_RADIUS_KM = 6371; // km
-      var dLat = toRad(lat2 - lat1);
-      var dLon = toRad(lon2 - lon1);
-      var lat1 = toRad(lat1);
-      var lat2 = toRad(lat2);
-
-      var a =
-        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-        Math.sin(dLon / 2) *
-          Math.sin(dLon / 2) *
-          Math.cos(lat1) *
-          Math.cos(lat2);
-      var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-      var d = EARTH_RADIUS_KM * c;
-      return d;
-    }
-
-    // Converts numeric degrees to radians
-    function toRad(Value: number) {
-      return (Value * Math.PI) / 180;
-    }
-
     const dist = [];
     for (let i = 0; i < lat1.length; i++) {
       dist.push(calcCrow(lat1[i], lng1[i], lat2[i], lng2[i]) * KM_TO_METERS);

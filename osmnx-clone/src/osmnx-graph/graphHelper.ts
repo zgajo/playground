@@ -105,3 +105,75 @@ export const _isPathReversed = (path: TPreparedGraphWay) => {
     return false;
   }
 };
+
+export function* weeklyConnectedComponents(G: Graph) {
+  const seen = new Set();
+
+  for (const v in G._adj) {
+    if (!seen.has(v)) {
+      const c = new Set(plainBfs(G, v));
+      yield c;
+    }
+  }
+}
+
+function* plainBfs(G: Graph, source: string) {
+  const gSucc = G._succ;
+  const gPred = G._pred;
+
+  const seen = new Set();
+  let nextLevel = new Set<string>([source]);
+
+  while (nextLevel.size) {
+    const thisLevel = nextLevel;
+    nextLevel = new Set();
+
+    for (const v of thisLevel.values()) {
+      if (!seen.has(v)) {
+        seen.add(v);
+        Object.keys(gSucc[v]).forEach(nextLevel.add, nextLevel);
+        Object.keys(gPred[v]).forEach(nextLevel.add, nextLevel);
+
+        yield v;
+      }
+    }
+  }
+}
+
+export const setNodeAttributes = (
+  G: Graph,
+  values: { [key: string]: number },
+  name: any
+) => {
+  if (name) {
+    for (const node in values) {
+      G._node[node][name] = values[node];
+    }
+  }
+};
+
+// Converts numeric degrees to radians
+function toRad(Value: number) {
+  return (Value * Math.PI) / 180;
+}
+
+//This function takes in latitude and longitude of two location and returns the distance between them as the crow flies (in km)
+export function calcCrow(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number
+) {
+  var EARTH_RADIUS_KM = 6371; // km
+  var dLat = toRad(lat2 - lat1);
+  var dLon = toRad(lon2 - lon1);
+  var lat1 = toRad(lat1);
+  var lat2 = toRad(lat2);
+
+  var a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.sin(dLon / 2) * Math.sin(dLon / 2) * Math.cos(lat1) * Math.cos(lat2);
+  var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  var d = EARTH_RADIUS_KM * c;
+  return d;
+}
