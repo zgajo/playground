@@ -1,0 +1,26 @@
+version: "3.7"
+services:
+  db:
+    image: postgres
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_DB=test
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+      - db-data:/foo # use volumes to store DB data into multiple places
+    ports:
+      - "5433:5432"
+
+  web:
+    build: . # use docker file from root
+    ports:
+      - "4001:3000"
+    restart: always # restart on crash
+    links:
+      - db
+    depends_on:
+      - db
+
+volumes:
+  db-data:
