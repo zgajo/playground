@@ -10,6 +10,6 @@ const dbInit = () =>
     Recipe.sync({ alter: isDev || isTest }),
     Review.sync({ alter: isDev || isTest }),
     User.sync({ alter: isDev || isTest }),
-  ]).then(console.log);
+  ]);
 
 export default dbInit;
