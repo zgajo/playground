@@ -2,18 +2,20 @@ require("dotenv").config();
 import diff from "microdiff";
 import { Dialect, Model, Sequelize } from "sequelize";
 import { SequelizeHooks } from "sequelize/types/lib/hooks";
+const config = require("./sequelize-env");
 
 import localCache from "../lib/local-cache";
 
 const isTest = process.env.NODE_ENV === "test";
+const isProduction = process.env.NODE_ENV === "production";
 
-const dbName = isTest
-  ? (process.env.TEST_DB_NAME as string)
-  : (process.env.DB_NAME as string);
-const dbUser = process.env.DB_USER as string;
-const dbHost = process.env.DB_HOST;
-const dbDriver = process.env.DB_DRIVER as Dialect;
-const dbPassword = process.env.DB_PASSWORD;
+let dbConfig = config.development;
+
+if (isTest) {
+  dbConfig = config.test;
+} else if (isProduction) {
+  dbConfig = config.production;
+}
 
 const hooks: Partial<SequelizeHooks<Model<any, any>, any, any>> = {
   afterUpdate: (instance: Model<any, any>) => {
@@ -53,11 +55,21 @@ const hooks: Partial<SequelizeHooks<Model<any, any>, any, any>> = {
   },
 };
 
-const sequelizeConnection = new Sequelize(dbName, dbUser, dbPassword, {
-  host: dbHost,
-  dialect: dbDriver,
-  logging: false,
-  define: { hooks },
-});
+const sequelizeConnection = new Sequelize(
+  dbConfig.database,
+  dbConfig.username,
+  dbConfig.password,
+  {
+    host: dbConfig.host,
+    dialect: dbConfig.dialect,
+    port: dbConfig.port || 5432,
+    logging: false,
+    define: { hooks },
+    pool: {
+      max: 10,
+      min: 0,
+    },
+  }
+);
 
 export default sequelizeConnection;
