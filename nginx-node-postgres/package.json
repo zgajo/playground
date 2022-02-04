@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/app.ts",
   "scripts": {
-    "dev": "nodemon",
+    "dev": "npx nodemon",
+    "start:dev": "ts-node ./src/app.ts",
     "start": "node dist/app.js",
     "build": "npx tsc",
     "sequelize-cli": "npm run build && npx sequelize-cli"
