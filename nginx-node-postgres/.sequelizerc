@@ -1,10 +1,10 @@
 const path = require("path");
 
 module.exports = {
-  config: path.resolve(path.join(__dirname, "sequelize-cli-config.json")),
-  "models-path": path.resolve(path.join(__dirname, "dist/src/db/models")),
-  "seeders-path": path.resolve(path.join(__dirname, "dist/src/db/models")),
-  "migrations-path": path.resolve(
-    path.join(__dirname, "dist/src/db/migrations")
-  ),
+  config: path.resolve(path.join(__dirname, "dist/db/sequelize-env.js")),
+  "models-path": path.resolve(path.join(__dirname, "dist/db/models")),
+  // This needs to always be the same, so I'll place it outside of src directory
+  "seeders-path": path.resolve(path.join(__dirname, "db/seeds")),
+  // This needs to always be the same, so I'll place it outside of src directory
+  "migrations-path": path.resolve(path.join(__dirname, "db/migrations")),
 };
