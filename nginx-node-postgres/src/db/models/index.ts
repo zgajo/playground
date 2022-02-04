@@ -7,11 +7,13 @@ import RecipeIngredient from "./RecipeIngredient";
 import RecipeTag from "./RecipeTag";
 import Review from "./Review";
 import Tag from "./Tag";
+import User from "./User";
 
 export { Ingredient, Recipe, RecipeIngredient, RecipeTag, Review, Tag };
 
 const models = {
   [Tag.name]: require(path.join(__dirname, "./Tag"))(sequelize, DataTypes),
+  [User.name]: require(path.join(__dirname, "./User"))(sequelize, DataTypes),
   [Recipe.name]: require(path.join(__dirname, "./Recipe"))(
     sequelize,
     DataTypes

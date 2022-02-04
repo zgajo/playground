@@ -1,20 +1,51 @@
-import { DataTypes } from "sequelize";
-import sequelize from "../db";
+import { DataTypes, Model, Optional } from "sequelize";
+import sequelizeConnection from "../config";
 
-export const User = sequelize.define(
-  "User",
+interface UserAttributes {
+  id: number;
+  firstName: string;
+  lastName: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+  deletedAt?: Date;
+}
+
+export interface UserInput
+  extends Optional<UserAttributes, "id" | "firstName" | "lastName"> {}
+
+export interface UserOutput extends Required<UserAttributes> {}
+
+class User extends Model<UserAttributes, UserInput> implements UserAttributes {
+  public id!: number;
+  public firstName!: string;
+  public lastName!: string;
+
+  // timestamps!
+  public readonly createdAt!: Date;
+  public readonly updatedAt!: Date;
+  public readonly deletedAt!: Date;
+}
+
+User.init(
   {
-    // Model attributes are defined here
+    id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      autoIncrement: true,
+      primaryKey: true,
+    },
     firstName: {
       type: DataTypes.STRING,
       allowNull: false,
     },
     lastName: {
       type: DataTypes.STRING,
-      // allowNull defaults to true
+      allowNull: false,
     },
   },
   {
-    // Other model options go here
+    sequelize: sequelizeConnection,
+    paranoid: true,
   }
 );
+
+export default User;

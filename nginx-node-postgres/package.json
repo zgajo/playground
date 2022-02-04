@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon",
     "start": "node dist/app.js",
-    "build": "npx tsc"
+    "build": "npx tsc",
+    "sequelize-cli": "npm run build && npx sequelize-cli"
   },
   "keywords": [],
   "author": "",
