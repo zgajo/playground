@@ -1,10 +1,10 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import { User } from ".";
 import sequelizeConnection from "../config";
 import Recipe from "./Recipe";
 
 interface ReviewAttributes {
   id: number;
-  author: string;
   description: string;
   title: string;
   isPublished: boolean;
@@ -24,7 +24,8 @@ class Review
   implements ReviewAttributes
 {
   public id!: number;
-  public author!: string;
+  public authorId!: number;
+  public receipeId!: number;
   public description!: string;
   public title!: string;
   public isPublished!: false;
@@ -43,10 +44,6 @@ Review.init(
       type: DataTypes.INTEGER.UNSIGNED,
       autoIncrement: true,
       primaryKey: true,
-    },
-    author: {
-      type: DataTypes.STRING,
-      allowNull: false,
     },
     description: {
       type: DataTypes.TEXT,
@@ -73,11 +70,5 @@ Review.init(
     sequelize: sequelizeConnection,
   }
 );
-
-Review.belongsTo(Recipe, {
-  foreignKey: {
-    allowNull: false,
-  },
-});
 
 export default Review;

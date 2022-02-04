@@ -1,6 +1,7 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import { Review } from ".";
 import sequelizeConnection from "../config";
-import { IngredientInput } from "./Ingredient";
+import User, { UserInput } from "./User";
 
 interface RecipeMetadata {
   cookingTime: string | null;
@@ -9,18 +10,15 @@ interface RecipeMetadata {
 interface RecipeAttributes {
   id: number;
   title: string;
-  slug?: string;
-  instruction?: string;
-  author?: string;
+  instruction: string;
   meta?: RecipeMetadata;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
 }
 
-export interface RecipeInput extends Optional<RecipeAttributes, "id" | "slug"> {
-  ingredients?: IngredientInput[];
-}
+export interface RecipeInput
+  extends Optional<RecipeAttributes, "id" | "instruction"> {}
 export interface RecipeOutput extends Required<RecipeAttributes> {}
 
 class Recipe
@@ -29,9 +27,9 @@ class Recipe
 {
   public id!: number;
   public title!: string;
-  public slug!: string;
+  public desc!: string;
   public instruction!: string;
-  public author!: string;
+  public authorId!: number;
   public meta!: RecipeMetadata;
 
   // timestamps!
@@ -51,19 +49,12 @@ Recipe.init(
       type: DataTypes.STRING,
       allowNull: false,
     },
-    slug: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-    },
     instruction: {
       type: DataTypes.TEXT,
+      allowNull: false,
     },
     meta: {
       type: DataTypes.JSON,
-    },
-    author: {
-      type: DataTypes.STRING,
     },
   },
   {
