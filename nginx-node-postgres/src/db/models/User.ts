@@ -1,5 +1,4 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import { Recipe, Review } from ".";
 import sequelizeConnection from "../config";
 
 interface UserAttributes {

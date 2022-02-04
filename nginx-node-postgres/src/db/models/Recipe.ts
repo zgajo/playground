@@ -1,7 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
-import { Review } from ".";
 import sequelizeConnection from "../config";
-import User, { UserInput } from "./User";
 
 interface RecipeMetadata {
   cookingTime: string | null;
