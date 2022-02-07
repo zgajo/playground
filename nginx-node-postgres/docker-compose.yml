@@ -16,11 +16,19 @@ services:
     build: . # use docker file from root
     ports:
       - "4001:3000"
+    environment:
+      - NODE_ENV=production
+      # https://docs.docker.com/compose/environment-variables/
+      - POSTGRES_PRODUCTION_USERNAME=${POSTGRES_PRODUCTION_USERNAME}
+      - POSTGRES_PRODUCTION_PASSWORD=${POSTGRES_PRODUCTION_PASSWORD}
+      - POSTGRES_PRODUCTION_DB=${POSTGRES_PRODUCTION_DB}
+      - POSTGRES_PRODUCTION_HOST=${POSTGRES_PRODUCTION_HOST}
+      - POSTGRES_PRODUCTION_PORT=5432
     restart: always # restart on crash
     links:
       - db
-    depends_on:
-      - db
+    # depends_on:
+    #   - db
 
 volumes:
   db-data:
