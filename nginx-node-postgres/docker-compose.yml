@@ -14,8 +14,8 @@ services:
 
   web:
     build: . # use docker file from root
-    ports:
-      - "4001:3000"
+    # ports:
+    #   - "4001:3000"
     environment:
       - NODE_ENV=production
       # https://docs.docker.com/compose/environment-variables/
@@ -24,11 +24,20 @@ services:
       - POSTGRES_PRODUCTION_DB=${POSTGRES_PRODUCTION_DB}
       - POSTGRES_PRODUCTION_HOST=${POSTGRES_PRODUCTION_HOST}
       - POSTGRES_PRODUCTION_PORT=5432
+      - APP_NO=1
     restart: always # restart on crash
     links:
       - db
-    # depends_on:
-    #   - db
+
+  nginx:
+    build:
+      context: ./nginx/
+      dockerfile: nginx.Dockerfile
+    depends_on:
+      - web
+    ports:
+      - "5100:5100"
+    restart: always
 
 volumes:
   db-data:
