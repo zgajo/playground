@@ -8,10 +8,9 @@ export const createConnection = async () => {
   while (retries) {
     try {
       await sequelizeConnection.authenticate();
-      dbInit();
 
       console.log("DB connection established");
-      return sequelizeConnection;
+      break;
     } catch (error) {
       --retries;
       console.log(
@@ -23,11 +22,14 @@ export const createConnection = async () => {
       await new Promise((resolve) =>
         setTimeout(() => {
           resolve("retry...");
-        }, 1000)
+        }, 3000)
       );
     }
   }
 
-  console.error("Couldn't connect to DB");
-  return;
+  await dbInit()
+    .then(() => console.log("sucessfully initialized database"))
+    .catch((err) => console.log("error during initialization", err));
+
+  return sequelizeConnection;
 };
