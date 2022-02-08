@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import { Recipe, Review } from ".";
 import sequelizeConnection from "../config";
 
 interface UserAttributes {
@@ -32,6 +33,7 @@ User.init(
       type: DataTypes.INTEGER,
       autoIncrement: true,
       primaryKey: true,
+      allowNull: false,
     },
     firstName: {
       type: DataTypes.STRING,

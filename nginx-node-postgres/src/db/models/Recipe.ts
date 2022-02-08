@@ -1,4 +1,5 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import { Review, User } from ".";
 import sequelizeConnection from "../config";
 
 interface RecipeMetadata {
@@ -10,13 +11,13 @@ interface RecipeAttributes {
   title: string;
   instruction: string;
   meta?: RecipeMetadata;
+  authorId: number;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
 }
 
-export interface RecipeInput
-  extends Optional<RecipeAttributes, "id" | "instruction"> {}
+export interface RecipeInput extends Optional<RecipeAttributes, "id"> {}
 export interface RecipeOutput extends Required<RecipeAttributes> {}
 
 class Recipe
@@ -54,7 +55,15 @@ Recipe.init(
     meta: {
       type: DataTypes.JSON,
     },
+    authorId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
+        key: "id",
+      },
+    },
   },
+
   {
     sequelize: sequelizeConnection,
     paranoid: true,

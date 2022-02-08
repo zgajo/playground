@@ -1,9 +1,12 @@
 import { DataTypes, Model, Optional } from "sequelize";
+import { Recipe, User } from ".";
 import sequelizeConnection from "../config";
 
 interface ReviewAttributes {
   id: number;
   description: string;
+  authorId: number;
+  recipeId: number;
   title: string;
   isPublished: boolean;
   publishedOn: Date | null;
@@ -23,7 +26,7 @@ class Review
 {
   public id!: number;
   public authorId!: number;
-  public receipeId!: number;
+  public recipeId!: number;
   public description!: string;
   public title!: string;
   public isPublished!: false;
@@ -59,6 +62,22 @@ Review.init(
     },
     rating: {
       type: DataTypes.INTEGER,
+      allowNull: false,
+    },
+    authorId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: User,
+        key: "id",
+      },
+      allowNull: false,
+    },
+    recipeId: {
+      type: DataTypes.INTEGER,
+      references: {
+        model: Recipe,
+        key: "id",
+      },
       allowNull: false,
     },
   },

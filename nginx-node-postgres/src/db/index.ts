@@ -1,6 +1,7 @@
+require("dotenv").config();
+
 import { ConnectionRefusedError } from "sequelize";
 import sequelizeConnection from "./config";
-import dbInit from "./init";
 
 export const createConnection = async () => {
   let retries = 5;
@@ -26,10 +27,6 @@ export const createConnection = async () => {
       );
     }
   }
-
-  await dbInit()
-    .then(() => console.log("sucessfully initialized database"))
-    .catch((err) => console.log("error during initialization", err));
 
   return sequelizeConnection;
 };
