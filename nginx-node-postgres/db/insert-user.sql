@@ -1,0 +1,7 @@
+CREATE ROLE insert_only_user WITH LOGIN PASSWORD 'Test1234';
+
+GRANT CONNECT ON DATABASE test TO insert_only_user;
+GRANT USAGE ON SCHEMA public TO insert_only_user;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO insert_only_user;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT INSERT ON TABLES TO insert_only_user;

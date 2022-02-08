@@ -1,0 +1,8 @@
+CREATE ROLE delete_only_user WITH LOGIN PASSWORD 'Test1234';
+
+GRANT CONNECT ON DATABASE test TO delete_only_user;
+GRANT USAGE ON SCHEMA public TO delete_only_user;
+GRANT DELETE ON ALL TABLES IN SCHEMA public TO delete_only_user;
+GRANT USAGE ON ALL SEQUENCES IN SCHEMA public TO delete_only_user;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT DELETE ON TABLES TO delete_only_user;
