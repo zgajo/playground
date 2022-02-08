@@ -7,8 +7,7 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_DB=test
     volumes:
-      - ./pgdata:/var/lib/postgresql/data
-      - db-data:/foo # use volumes to store DB data into multiple places
+      - ./pgdata:/var/lib/postgresql/data # use volumes to store DB data into multiple places and persist data
     ports:
       - "5433:5432"
 
@@ -38,6 +37,3 @@ services:
     ports:
       - "5100:5100"
     restart: always
-
-volumes:
-  db-data:
