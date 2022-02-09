@@ -16,7 +16,7 @@ interface ReviewAttributes {
 
 export interface ReviewInput extends Optional<ReviewAttributes, "id"> {}
 
-export interface ReviewOuput extends Required<ReviewAttributes> {}
+export interface ReviewOutput extends Required<ReviewAttributes> {}
 
 export class Review
   extends Model<ReviewAttributes, ReviewInput>
