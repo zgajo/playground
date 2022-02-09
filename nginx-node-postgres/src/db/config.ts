@@ -1,10 +1,7 @@
 require("dotenv").config();
-import diff from "microdiff";
-import { Dialect, Model, Sequelize } from "sequelize";
-import { SequelizeHooks } from "sequelize/types/lib/hooks";
+import { ConnectionRefusedError } from "sequelize";
+import { DBConnector } from "./DBConnector";
 const config = require("./sequelize-env");
-
-import localCache from "../lib/local-cache";
 
 const isTest = process.env.NODE_ENV === "test";
 const isProduction = process.env.NODE_ENV === "production";
@@ -17,59 +14,39 @@ if (isTest) {
   dbConfig = config.production;
 }
 
-const hooks: Partial<SequelizeHooks<Model<any, any>, any, any>> = {
-  afterUpdate: (instance: Model<any, any>) => {
-    const cacheKey = `${instance.constructor.name.toLowerCase()}s`;
+export const sequelizeConnection = new DBConnector(dbConfig);
+export const readOnlyConnection = new DBConnector({
+  username: "read_only_user",
+  password: "Test1234",
+  database: "test",
+  host: "127.0.0.1",
+  dialect: "postgres",
+  port: 5433,
+});
 
-    const currentData = instance.get({ plain: true });
+export const createConnections = async () => {
+  let retries = 5;
 
-    if (!localCache.hasKey(cacheKey)) {
-      return;
+  while (retries) {
+    try {
+      await sequelizeConnection.connection.authenticate();
+      await readOnlyConnection.connection.authenticate();
+
+      console.log("DB connection established");
+      break;
+    } catch (error) {
+      --retries;
+      console.log(
+        "connecting to db, retries left: ",
+        retries,
+        ". Error: ",
+        (error as ConnectionRefusedError).message
+      );
+      await new Promise((resolve) =>
+        setTimeout(() => {
+          resolve("retry...");
+        }, 3000)
+      );
     }
-
-    const listingData = localCache.get<any>(cacheKey) as any[];
-    const itemIndex = listingData.findIndex(
-      (it) => it.id === instance.getDataValue("id")
-    );
-    const oldItemData = ~itemIndex ? listingData[itemIndex] : {};
-
-    const instanceDiff = diff(oldItemData, currentData);
-
-    if (instanceDiff.length > 0) {
-      listingData[itemIndex] = currentData;
-      localCache.set(cacheKey, listingData);
-    }
-  },
-  afterCreate: (instance: Model<any, any>) => {
-    const cacheKey = `${instance.constructor.name.toLowerCase()}s`;
-    const currentData = instance.get({ plain: true });
-
-    if (!localCache.hasKey(cacheKey)) {
-      return;
-    }
-
-    const listingData = localCache.get<any>(cacheKey) as any[];
-    listingData.push(currentData);
-
-    localCache.set(cacheKey, listingData);
-  },
-};
-
-const sequelizeConnection = new Sequelize(
-  dbConfig.database,
-  dbConfig.username,
-  dbConfig.password,
-  {
-    host: dbConfig.host,
-    dialect: dbConfig.dialect,
-    port: dbConfig.port || 5432,
-    logging: false,
-    define: { hooks },
-    pool: {
-      max: 10,
-      min: 0,
-    },
   }
-);
-
-export default sequelizeConnection;
+};
