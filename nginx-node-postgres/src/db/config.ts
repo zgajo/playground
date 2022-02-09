@@ -1,6 +1,6 @@
 require("dotenv").config();
 import { ConnectionRefusedError } from "sequelize";
-import { DBConnector } from "./DBConnector";
+import { DBConnector } from "./utils/DBConnector";
 const config = require("./sequelize-env");
 
 const isTest = process.env.NODE_ENV === "test";

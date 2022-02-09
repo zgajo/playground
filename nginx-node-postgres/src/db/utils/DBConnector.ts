@@ -1,11 +1,11 @@
 import diff from "microdiff";
 import { Model, Sequelize } from "sequelize";
 import { SequelizeHooks } from "sequelize/types/lib/hooks";
-import localCache from "../lib/local-cache";
-import { RecipeInit } from "./models/Recipe";
-import { ReviewInit } from "./models/Review";
-import { UserInit } from "./models/User";
-import { IDBConnectionModel } from "./types";
+import localCache from "../../lib/local-cache";
+import { RecipeInit } from "../models/Recipe";
+import { ReviewInit } from "../models/Review";
+import { UserInit } from "../models/User";
+import { IDBConnectionModel } from "../types/types";
 
 const hooks: Partial<SequelizeHooks<Model<any, any>, any, any>> = {
   afterUpdate: (instance: Model<any, any>) => {
