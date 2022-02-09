@@ -6,9 +6,10 @@ const app = express();
 const port = 3000;
 
 export const startServer = () => {
-  app.use(userRouter);
-  app.use(recipeRouter);
-  app.use(reviewRouter);
+  app.use("/api", userRouter);
+  app.use("/api", recipeRouter);
+  app.use("/api", reviewRouter);
+  app.use(express.json());
 
   app.get("/", (req, res) => {
     res.send(`Hello from world ${process.env.APP_NO || "localhost"}`);

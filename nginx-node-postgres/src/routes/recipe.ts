@@ -1,14 +1,11 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Request, Response, Router } from "express";
+import * as recipeController from "../controllers/recipe";
 
 export const recipeRouter = Router();
 
-recipeRouter.get("/recipe", function (req: Request, res: Response) {
-  res.json("recipe");
-});
+recipeRouter.get("/recipe/:id", recipeController.getRecipe);
 
-recipeRouter.get("/recipes", function (req: Request, res: Response) {
-  res.json("recipes");
-});
+recipeRouter.get("/recipes", recipeController.listRecipes);
 
 recipeRouter.post("/recipe", function (req: Request, res: Response) {
   res.json("About birds");

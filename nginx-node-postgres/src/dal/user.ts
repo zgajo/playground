@@ -11,7 +11,7 @@ const UserInsert = insertOnlyConnection.models.User;
 const UserDelete = deleteOnlyConnection.models.User;
 const UserUpdate = updateOnlyConnection.models.User;
 
-export const getAll = async (filters: UserInput): Promise<UserOutput[]> => {
+export const getAll = async (filters?: UserInput): Promise<UserOutput[]> => {
   const users = await UserRead.findAll({
     where: filters,
   });

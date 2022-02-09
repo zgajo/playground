@@ -4,7 +4,7 @@ interface RecipeMetadata {
   cookingTime: string | null;
 }
 
-interface RecipeAttributes {
+export interface RecipeAttributes {
   id: number;
   title: string;
   instruction: string;

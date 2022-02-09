@@ -12,7 +12,7 @@ const RecipeDelete = deleteOnlyConnection.models.Recipe;
 const RecipeUpdate = updateOnlyConnection.models.Recipe;
 
 export const getAll = async (
-  filters: Omit<RecipeInput, "meta">
+  filters?: Omit<RecipeInput, "meta">
 ): Promise<RecipeOutput[]> => {
   const users = await RecipeRead.findAll({
     where: filters,
