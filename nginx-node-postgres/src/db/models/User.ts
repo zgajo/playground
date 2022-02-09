@@ -1,6 +1,4 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import { Recipe, Review } from ".";
-import sequelizeConnection from "../config";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface UserAttributes {
   id: number;
@@ -9,6 +7,7 @@ interface UserAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
+  associate?: (models: any) => void;
 }
 
 export interface UserInput
@@ -16,7 +15,10 @@ export interface UserInput
 
 export interface UserOutput extends Required<UserAttributes> {}
 
-class User extends Model<UserAttributes, UserInput> implements UserAttributes {
+export class User
+  extends Model<UserAttributes, UserInput>
+  implements UserAttributes
+{
   public id!: number;
   public firstName!: string;
   public lastName!: string;
@@ -27,27 +29,39 @@ class User extends Model<UserAttributes, UserInput> implements UserAttributes {
   public readonly deletedAt!: Date;
 }
 
-User.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-      allowNull: false,
+export const UserInit = (sequelize: Sequelize) => {
+  const User = sequelize.define<User>(
+    "User",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+        allowNull: false,
+      },
+      firstName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      lastName: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
     },
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    sequelize: sequelizeConnection,
-    paranoid: true,
-  }
-);
+    {
+      paranoid: true,
+    }
+  );
 
-export default User;
+  // @ts-ignore
+  User.associate = (models) => {
+    User.hasMany(models.Recipe, {
+      foreignKey: "authorId",
+    });
+    User.hasMany(models.Review, {
+      foreignKey: "authorId",
+    });
+  };
+
+  return User;
+};

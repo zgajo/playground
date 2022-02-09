@@ -1,6 +1,4 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import { Recipe, User } from ".";
-import sequelizeConnection from "../config";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface ReviewAttributes {
   id: number;
@@ -20,7 +18,7 @@ export interface ReviewInput extends Optional<ReviewAttributes, "id"> {}
 
 export interface ReviewOuput extends Required<ReviewAttributes> {}
 
-class Review
+export class Review
   extends Model<ReviewAttributes, ReviewInput>
   implements ReviewAttributes
 {
@@ -39,53 +37,55 @@ class Review
   public readonly deletedAt!: Date;
 }
 
-Review.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    description: {
-      type: DataTypes.TEXT,
-    },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    isPublished: {
-      type: DataTypes.BOOLEAN,
-      defaultValue: false,
-    },
-    publishedOn: {
-      type: DataTypes.DATE,
-    },
-    rating: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-    },
-    authorId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: User,
-        key: "id",
+export const ReviewInit = (sequelize: Sequelize) => {
+  const Review = sequelize.define<Review>(
+    "Review",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
       },
-      allowNull: false,
-    },
-    recipeId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: Recipe,
-        key: "id",
+      description: {
+        type: DataTypes.TEXT,
       },
-      allowNull: false,
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      isPublished: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      },
+      publishedOn: {
+        type: DataTypes.DATE,
+      },
+      rating: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      authorId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
+      recipeId: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+      },
     },
-  },
-  {
-    paranoid: true,
-    timestamps: true,
-    sequelize: sequelizeConnection,
-  }
-);
+    {
+      paranoid: true,
+      timestamps: true,
+    }
+  );
 
-export default Review;
+  // @ts-ignore
+  Review.associate = (models) => {
+    Review.belongsTo(models.Recipe, { foreignKey: "recipeId" });
+    Review.belongsTo(models.User, {
+      foreignKey: "authorId",
+    });
+  };
+
+  return Review;
+};

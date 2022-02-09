@@ -1,6 +1,4 @@
-import { DataTypes, Model, Optional } from "sequelize";
-import { Review, User } from ".";
-import sequelizeConnection from "../config";
+import { DataTypes, Model, Optional, Sequelize } from "sequelize";
 
 interface RecipeMetadata {
   cookingTime: string | null;
@@ -20,7 +18,7 @@ interface RecipeAttributes {
 export interface RecipeInput extends Optional<RecipeAttributes, "id"> {}
 export interface RecipeOutput extends Required<RecipeAttributes> {}
 
-class Recipe
+export class Recipe
   extends Model<RecipeAttributes, RecipeInput>
   implements RecipeAttributes
 {
@@ -37,37 +35,43 @@ class Recipe
   public readonly deletedAt!: Date;
 }
 
-Recipe.init(
-  {
-    id: {
-      type: DataTypes.INTEGER,
-      autoIncrement: true,
-      primaryKey: true,
-    },
-    title: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    instruction: {
-      type: DataTypes.TEXT,
-      allowNull: false,
-    },
-    meta: {
-      type: DataTypes.JSON,
-    },
-    authorId: {
-      type: DataTypes.INTEGER,
-      references: {
-        model: User,
-        key: "id",
+export const RecipeInit = (sequelize: Sequelize) => {
+  const Recipe = sequelize.define<Recipe>(
+    "Recipe",
+    {
+      id: {
+        type: DataTypes.INTEGER,
+        autoIncrement: true,
+        primaryKey: true,
+      },
+      title: {
+        type: DataTypes.STRING,
+        allowNull: false,
+      },
+      instruction: {
+        type: DataTypes.TEXT,
+        allowNull: false,
+      },
+      meta: {
+        type: DataTypes.JSON,
+      },
+      authorId: {
+        type: DataTypes.INTEGER,
       },
     },
-  },
 
-  {
-    sequelize: sequelizeConnection,
-    paranoid: true,
-  }
-);
+    {
+      paranoid: true,
+    }
+  );
 
-export default Recipe;
+  // @ts-expect-error
+  Recipe.associate = (models) => {
+    Recipe.belongsTo(models.User, {
+      foreignKey: "authorId",
+    });
+    Recipe.hasMany(models.Review, { foreignKey: "recipeId" });
+  };
+
+  return Recipe;
+};
