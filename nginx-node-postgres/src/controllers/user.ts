@@ -10,10 +10,10 @@ export const getUser = async function (req: Request, res: Response) {
 };
 
 export const listUsers = async function (req: Request, res: Response) {
-  const page = Number(req.query.page);
+  const cursor = Number(req.query.cursor);
   const limit = Number(req.query.limit);
 
-  const user = await userService.getAll();
+  const user = await userService.getAll({ limit, cursor });
 
   res.status(200).send(user);
 };

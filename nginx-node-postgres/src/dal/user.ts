@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import {
   readOnlyConnection,
   insertOnlyConnection,
@@ -11,9 +12,25 @@ const UserInsert = insertOnlyConnection.models.User;
 const UserDelete = deleteOnlyConnection.models.User;
 const UserUpdate = updateOnlyConnection.models.User;
 
-export const getAll = async (filters?: UserInput): Promise<UserOutput[]> => {
+export const getAll = async (params: {
+  filters?: UserInput;
+  limit?: number;
+  cursor?: number;
+}): Promise<UserOutput[]> => {
+  const cursor = params.cursor
+    ? {
+        id: {
+          [Op.gt]: params.cursor,
+        },
+      }
+    : null;
+
   const users = await UserRead.findAll({
-    where: filters,
+    limit: params.limit,
+    where: {
+      ...params.filters,
+      ...cursor,
+    },
   });
 
   return users;

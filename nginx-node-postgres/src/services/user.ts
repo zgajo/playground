@@ -20,6 +20,10 @@ export const deleteById = async (id: number): Promise<boolean> => {
   return userDal.deleteById(id);
 };
 
-export const getAll = async (filters?: UserInput): Promise<UserOutput[]> => {
-  return userDal.getAll(filters);
+export const getAll = async (params: {
+  filters?: UserInput;
+  limit?: number;
+  cursor?: number;
+}): Promise<UserOutput[]> => {
+  return await userDal.getAll(params);
 };
