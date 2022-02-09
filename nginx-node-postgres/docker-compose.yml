@@ -8,6 +8,10 @@ services:
       - POSTGRES_DB=test
     volumes:
       - ./pgdata:/var/lib/postgresql/data # use volumes to store DB data into multiple places and persist data
+      - ./db/read-user.sql:/docker-entrypoint-initdb.d/read-user.sql
+      - ./db/insert-user.sql:/docker-entrypoint-initdb.d/insert-user.sql
+      - ./db/delete-user.sql:/docker-entrypoint-initdb.d/delete-user.sql
+      - ./db/update-user.sql:/docker-entrypoint-initdb.d/update-user.sql
     ports:
       - "5433:5432"
 
@@ -21,7 +25,7 @@ services:
       - POSTGRES_PRODUCTION_USERNAME=${POSTGRES_PRODUCTION_USERNAME}
       - POSTGRES_PRODUCTION_PASSWORD=${POSTGRES_PRODUCTION_PASSWORD}
       - POSTGRES_PRODUCTION_DB=${POSTGRES_PRODUCTION_DB}
-      - POSTGRES_PRODUCTION_HOST=${POSTGRES_PRODUCTION_HOST}
+      - POSTGRES_PRODUCTION_HOST=db # host is equal to postgres service name above
       - POSTGRES_PRODUCTION_PORT=5432
       - APP_NO=1
     restart: always # restart on crash

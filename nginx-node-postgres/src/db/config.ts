@@ -19,9 +19,9 @@ export const readOnlyConnection = new DBConnector({
   username: "read_only_user",
   password: "Test1234",
   database: "test",
-  host: "127.0.0.1",
+  host: process.env.POSTGRES_PRODUCTION_HOST || "127.0.0.1",
   dialect: "postgres",
-  port: 5433,
+  port: process.env.POSTGRES_PRODUCTION_PORT || 5433,
 });
 
 export const createConnections = async () => {
