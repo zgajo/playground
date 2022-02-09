@@ -7,7 +7,6 @@ interface UserAttributes {
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date;
-  associate?: (models: any) => void;
 }
 
 export interface UserInput
