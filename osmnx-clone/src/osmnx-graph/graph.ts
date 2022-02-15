@@ -278,6 +278,10 @@ export class Graph {
       const succs = this._succ[n];
 
       delete this._node[n];
+      // Ovo mogu brisati i tako da posaljem set preko parametra i nakon sta se zavrsi for petlja napraviti:
+      // this.nodes = this.nodes.filter((curr) => !nodesSet.get(curr));
+      this.nodes = this.nodes.filter((curr) => curr !== n);
+
       for (const u in succs) {
         delete this._pred[u][n];
         this.edges = this.edges.filter(
