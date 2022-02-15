@@ -3,9 +3,9 @@ import * as userService from "../services/user";
 
 export const getUser = async function (req: Request, res: Response) {
   const id = req.params.id ? Number(req.params.id) : undefined;
-
+  console.log(id);
   if (!id) {
-    throw new Error("No id provided");
+    throw new Error("No id number provided");
   }
 
   const user = await userService.getById(id);
