@@ -21,9 +21,7 @@ export const addEdgeSpeeds = (
   };
 
   if (edges) {
-    const highways = edges.highway;
-
-    highways.map((el) => {
+    edges.highway = edges.highway.map((el) => {
       if (el[1]?.constructor.name === "Object") {
         const highwayType = [...el[1]][0];
 
@@ -32,6 +30,11 @@ export const addEdgeSpeeds = (
         }
         return [el[0], highwayType];
       }
+
+      if (!edges.highwayTypes.includes(el[1])) {
+        edges.highwayTypes.push(el[1]);
+      }
+
       return el;
     });
 
@@ -49,16 +52,61 @@ export const addEdgeSpeeds = (
         return el;
       });
 
-      edges["speed_kph"] = edges.maxspeed.filter((el) => el[1] >= 0);
+      edges["speed_kph"] = edges.maxspeed;
     } else {
       edges["speed_kph"] = null;
     }
 
+    // let hwySpeedAvg =
     // if (!_hwySpeeds) {
     //   const hwySpeedAvg;
     // } else {
     //   const hwySpeedAvg;
     // }
+
+    const hwySpeedAvg = {};
+
+    const groupByHighway = edges.highway.reduce((entryMap, e, index) => {
+      console.log(e[1]);
+      if (!(e[1] in hwySpeedAvg)) {
+        hwySpeedAvg[e[1]] = null;
+      }
+
+      if (edges["speed_kph"][index][1]) {
+        hwySpeedAvg[e[1]] = [
+          ...(hwySpeedAvg[e[1]] ? hwySpeedAvg[e[1]] : []),
+          edges["speed_kph"][index][1],
+        ];
+      }
+      return entryMap.set(e[1], [...(entryMap.get(e[1]) || []), e]);
+    }, new Map());
+
+    //* Stavljamo speed za svako road
+    const arrAvg = (arr: any[]) =>
+      arr.reduce((a, b) => Number(a) + Number(b), 0) / arr.length;
+
+    let avg = 0;
+
+    for (const key in hwySpeedAvg) {
+      if (hwySpeedAvg[key]) {
+        const speedAvg = arrAvg(hwySpeedAvg[key]);
+        hwySpeedAvg[key] = speedAvg;
+
+        if (avg) {
+          avg += speedAvg / 2;
+        } else {
+          avg += speedAvg;
+        }
+      }
+    }
+
+    for (const key in hwySpeedAvg) {
+      if (!hwySpeedAvg[key]) {
+        hwySpeedAvg[key] = avg;
+      }
+    }
+
+    console.log("object");
   }
 
   console.log("first");
