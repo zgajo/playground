@@ -4,7 +4,7 @@ import { parseNodesPaths, setNodeAttributes } from "./graphHelper";
 import { Graph } from "./graph";
 import { Distance } from "./distance";
 import { countStreetsPerNode } from "./stats";
-import { addEdgeSpeeds } from "./speed";
+import { addEdgeSpeeds, addEdgeTravelTimes } from "./speed";
 
 var rseloJson = JSON.parse(
   fs.readFileSync(path.join(__dirname + "/rselo.json"), "utf8")
@@ -35,5 +35,6 @@ const spn = countStreetsPerNode(GBuff, GBuff.nodes);
 setNodeAttributes(GBuff, spn, "street_count");
 const G = GBuff;
 addEdgeSpeeds(G);
+addEdgeTravelTimes(G);
 
 console.log("first");

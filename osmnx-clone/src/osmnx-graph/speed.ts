@@ -1,5 +1,5 @@
 import { Graph } from "./graph";
-import { graphToGdfs } from "./utils";
+import { graphToGdfs, IGdfEdges } from "./utils";
 
 export const addEdgeSpeeds = (
   G: Graph,
@@ -7,120 +7,36 @@ export const addEdgeSpeeds = (
   fallback?: undefined,
   precision = 1
 ) => {
-  const edges = graphToGdfs({ G, fillEdgeGeometry: false, nodes: false }) as {
-    u: number[];
-    columns: never[];
-    v: number[];
-    k: number[];
-    data: any[];
-    highway: any[][];
-    highwayTypes: string[];
-    maxspeed?: any[][];
-    name: any[][];
-    length: any[][];
-  };
+  const edges = graphToGdfs({
+    G,
+    fillEdgeGeometry: false,
+    nodes: false,
+  }) as IGdfEdges;
 
   if (edges) {
-    edges.highway = edges.highway.map((el) => {
-      if (el[1]?.constructor.name === "Object") {
-        const highwayType = [...el[1]][0];
-
-        if (!edges.highwayTypes.includes(highwayType)) {
-          edges.highwayTypes.push(highwayType);
-        }
-        return [el[0], highwayType];
-      }
-
-      if (!edges.highwayTypes.includes(el[1])) {
-        edges.highwayTypes.push(el[1]);
-      }
-
-      return el;
-    });
-
-    if (edges.maxspeed) {
-      edges.maxspeed = edges.maxspeed.map((el) => {
-        if (el[1]?.constructor.name === "Object") {
-          const set = new Set(el[1]);
-          let sum = 0;
-          set.forEach((el: any) => {
-            sum += Number(el);
-          });
-          return [el[0], sum / set.size];
-        }
-
-        return el;
-      });
-
-      edges["speed_kph"] = edges.maxspeed;
-    } else {
-      edges["speed_kph"] = null;
-    }
-
-    // let hwySpeedAvg =
-    // if (!_hwySpeeds) {
-    //   const hwySpeedAvg;
-    // } else {
-    //   const hwySpeedAvg;
-    // }
-
-    const hwySpeedAvg = {};
-
-    const groupByHighway = edges.highway.reduce((entryMap, e, index) => {
-      console.log(e[1]);
-      if (!(e[1] in hwySpeedAvg)) {
-        hwySpeedAvg[e[1]] = null;
-      }
-
-      if (edges["speed_kph"][index][1]) {
-        hwySpeedAvg[e[1]] = [
-          ...(hwySpeedAvg[e[1]] ? hwySpeedAvg[e[1]] : []),
-          edges["speed_kph"][index][1],
-        ];
-      }
-      return entryMap.set(e[1], [...(entryMap.get(e[1]) || []), e]);
-    }, new Map());
-
-    //* Stavljamo speed za svako road
-    const arrAvg = (arr: any[]) =>
-      arr.reduce((a, b) => Number(a) + Number(b), 0) / arr.length;
-
-    let avg = 0;
-
-    for (const key in hwySpeedAvg) {
-      if (hwySpeedAvg[key]) {
-        const speedAvg = arrAvg(hwySpeedAvg[key]);
-        hwySpeedAvg[key] = speedAvg;
-
-        if (avg) {
-          avg += speedAvg / 2;
-        } else {
-          avg += speedAvg;
-        }
-      }
-    }
-
-    for (const key in hwySpeedAvg) {
-      if (!hwySpeedAvg[key]) {
-        hwySpeedAvg[key] = avg;
-      }
-    }
-
-    const speedKph = edges.highway.map((el, index) => {
-      if (edges["speed_kph"][index][1]) {
-        return [el[1], Number(edges["speed_kph"][index][1])];
-      }
-      return [el[1], hwySpeedAvg[el[1]]];
-    });
-
-    edges["speed_kph"] = speedKph.map((el, index) => {
-      return [edges.highway[index][0], parseFloat(el[1]).toFixed(1)];
-    });
-
-    G.setEdgeAttributes(edges["speed_kph"], "speed_kph");
-
-    return G;
+    G.setEdgeAttributes(edges.speedKph, "speed_kph");
   }
 
-  console.log("first");
+  return G;
+};
+
+export const addEdgeTravelTimes = (G: Graph, precision = 1) => {
+  const edges = graphToGdfs({ G, nodes: false }) as IGdfEdges;
+
+  //  convert distance meters to km, and speed km per hour to km per second
+  const distanceKm = edges.length.map((el) => {
+    return [el[0], el[1] / 1000];
+  });
+  const speedKmSec = edges.speedKph.map((el) => {
+    return [el[0], el[1] / (60 * 60)];
+  });
+
+  const travelTime: [number[], number][] = distanceKm.map((el, index) => {
+    const speed = speedKmSec[index][1] as number;
+    return [el[0], parseFloat(Number(el[1] / speed).toFixed(1))];
+  });
+
+  G.setEdgeAttributes(travelTime, "travel_time");
+
+  return G;
 };
