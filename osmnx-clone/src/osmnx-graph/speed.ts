@@ -106,7 +106,20 @@ export const addEdgeSpeeds = (
       }
     }
 
-    console.log("object");
+    const speedKph = edges.highway.map((el, index) => {
+      if (edges["speed_kph"][index][1]) {
+        return [el[1], Number(edges["speed_kph"][index][1])];
+      }
+      return [el[1], hwySpeedAvg[el[1]]];
+    });
+
+    edges["speed_kph"] = speedKph.map((el, index) => {
+      return [edges.highway[index][0], parseFloat(el[1]).toFixed(1)];
+    });
+
+    G.setEdgeAttributes(edges["speed_kph"], "speed_kph");
+
+    return G;
   }
 
   console.log("first");
