@@ -1,0 +1,24 @@
+{
+  "name": "codemod",
+  "version": "1.0.0",
+  "description": "[](https://www.toptal.com/javascript/write-code-to-rewrite-your-code)",
+  "main": "deprecated.input.js",
+  "scripts": {
+    "codemod": "npx jscodeshift -t sequelize4.codemod.js sequelize4/models/index.js --dry --print"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "esm": "^3.2.25",
+    "lodash": "^4.17.21",
+    "recast": "^0.20.5",
+    "sequelize": "^4.44.4",
+    "sequelize4": "npm:sequelize@^4.44.4",
+    "sequelize5": "npm:sequelize@^5.22.5",
+    "sqlite3": "^5.0.2"
+  },
+  "devDependencies": {
+    "jscodeshift": "^0.13.1"
+  }
+}
