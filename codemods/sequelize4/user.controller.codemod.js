@@ -1,4 +1,11 @@
 const j = require('jscodeshift');
+const {
+  deprecatedSequelizeAliases,
+  SEQUELIZE_CAPITALIZED,
+  SEQUELIZE_LOWER_CASE,
+} = require('./codemods/helpers/constants');
+const { destructuringHelper } = require('./codemods/helpers/destructuring');
+const { changeDeprecatedModelMethods } = require('./codemods/helpers/model');
 
 /**
  * TODO: Should we add hooks deprecated changes?
@@ -15,43 +22,7 @@ const j = require('jscodeshift');
 
  */
 
-// Model - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
-const changeDeprecatedModelMethods = (methodName) => {
-  switch (methodName) {
-    case 'insertOrUpdate':
-      return 'upsert';
-
-    case 'find':
-      return 'findOne';
-
-    case 'findAndCount':
-      return 'findAndCountAll';
-
-    case 'findOrInitialize':
-      return 'findOrBuild';
-
-    case 'updateAttributes':
-      return 'update';
-
-    case 'findById' || 'findByPrimary':
-      return 'findByPk';
-
-    case 'all':
-      return 'findAll';
-
-    case 'hook':
-      return 'addHook';
-
-    default:
-      return methodName;
-  }
-};
-// Sequelize - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
-// not including - dont know what it does Sequelize.prototype[error]	
-const deprecatedSequelizeAliases = ["Utils", "Promise", "TableHints", "Op", "Transaction", "Model", "Deferrable", "Error"]
-
-
-export default (fileInfo, api) => {
+module.exports = (fileInfo, api) => {
   // const j = api.jscodeshift; // this line is not needed if we use imported j
   const root = j(fileInfo.source);
 
@@ -66,8 +37,8 @@ export default (fileInfo, api) => {
     })
     .forEach((node) => {
       if (
-        node.value.init.arguments[0].value &&
-        node.value.init.arguments[0].value.endsWith('/models') ||
+        (node.value.init.arguments[0].value &&
+          node.value.init.arguments[0].value.endsWith('/models')) ||
         node.value.init.arguments[0].value.endsWith('/models/index') ||
         node.value.init.arguments[0].value.endsWith('/models/readonly') ||
         node.value.init.arguments[0].value.endsWith('/models/readonly-exports')
@@ -102,15 +73,17 @@ export default (fileInfo, api) => {
             name: key,
           },
           property: {
-            name: "sequelize"
-          }
+            name: SEQUELIZE_LOWER_CASE,
+          },
         },
       })
       .forEach((node) => {
         if (deprecatedSequelizeAliases.includes(node.value.property.name)) {
-          node.value.object.property.name = "Sequelize"
+          node.value.object.property.name = SEQUELIZE_CAPITALIZED;
         }
       });
+
+    destructuringHelper(root, key);
   }
 
   return root.toSource();
