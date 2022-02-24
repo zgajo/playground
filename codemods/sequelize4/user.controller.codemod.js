@@ -1,5 +1,20 @@
 const j = require('jscodeshift');
 
+/**
+ * TODO: Should we add hooks deprecated changes?
+ * TODO: There are some use cases that needs to be covered:
+    
+    const sequelize = db.sequelize
+    const kk = sequelize.Op
+
+    const { Op } = db.sequelize
+
+    This is also for the 
+    const User = db["User"]
+    const { findOne } = db["User"]
+
+ */
+
 // Model - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
 const changeDeprecatedModelMethods = (methodName) => {
   switch (methodName) {
