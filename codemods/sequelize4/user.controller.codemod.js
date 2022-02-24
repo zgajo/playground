@@ -1,8 +1,7 @@
 const j = require('jscodeshift');
 
 // Model - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
-
-const changeDeprecatedMethod = (methodName) => {
+const changeDeprecatedModelMethods = (methodName) => {
   switch (methodName) {
     case 'insertOrUpdate':
       return 'upsert';
@@ -32,6 +31,10 @@ const changeDeprecatedMethod = (methodName) => {
       return methodName;
   }
 };
+// Sequelize - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
+// not including - dont know what it does Sequelize.prototype[error]	
+const deprecatedSequelizeAliases = ["Utils", "Promise", "TableHints", "Op", "Transaction", "Model", "Deferrable", "Error"]
+
 
 export default (fileInfo, api) => {
   // const j = api.jscodeshift; // this line is not needed if we use imported j
@@ -49,7 +52,10 @@ export default (fileInfo, api) => {
     .forEach((node) => {
       if (
         node.value.init.arguments[0].value &&
-        node.value.init.arguments[0].value.endsWith('/models')
+        node.value.init.arguments[0].value.endsWith('/models') ||
+        node.value.init.arguments[0].value.endsWith('/models/index') ||
+        node.value.init.arguments[0].value.endsWith('/models/readonly') ||
+        node.value.init.arguments[0].value.endsWith('/models/readonly-exports')
       ) {
         foundImports[node.value.id.name] = node;
       }
@@ -67,12 +73,12 @@ export default (fileInfo, api) => {
         },
       })
       .forEach((node) => {
-        node.value.property.name = changeDeprecatedMethod(
+        node.value.property.name = changeDeprecatedModelMethods(
           node.value.property.name
         );
       });
 
-    // Changing deprecated Sequelize.prototype.Op
+    // Changing deprecated Sequelize aliases
     root
       .find(j.MemberExpression, {
         object: {
@@ -86,7 +92,7 @@ export default (fileInfo, api) => {
         },
       })
       .forEach((node) => {
-        if (node.value.property.name === "Op") {
+        if (deprecatedSequelizeAliases.includes(node.value.property.name)) {
           node.value.object.property.name = "Sequelize"
         }
       });
