@@ -53,7 +53,7 @@ module.exports = {
     if (node.value.init.property.value === SEQUELIZE_LOWER_CASE) {
       // Go through every destructured property and check if the sequelize alias has changed
       node.value.id.properties.forEach((prop) => {
-        if (DEPRECATED_SEQUELIZE_ALIASES.includes(prop.key.value)) {
+        if (DEPRECATED_SEQUELIZE_ALIASES.includes(prop.key.name)) {
           node.value.init.property.value = SEQUELIZE_CAPITALIZED;
         }
       });
