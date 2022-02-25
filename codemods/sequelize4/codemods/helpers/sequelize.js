@@ -74,4 +74,28 @@ module.exports = {
       value.endsWith('/models/readonly-exports')
     );
   },
+  /**
+   *
+   * @param {*} obj fetched Sequelize object tree
+   * Going through the arguments and searching object, change operatorsAliases to number
+   */
+  changeSequelizeCreationOperatorsAliasesProperty: (obj) => {
+    // Going through every argument in new Sequelize(bla, bla2, etc...)
+    obj.value.arguments.forEach((property) => {
+      // Searching only the object in arguments as there are multiple parameters.
+      if (property.type !== 'ObjectExpression') return;
+
+      property.properties.forEach((property2) => {
+        // SOLUTION FOR: DeprecationWarning: A boolean value was passed to options.operatorsAliases. This is a no-op with v5 and should be removed
+        if (property2.type !== 'Property') return;
+        if (property2.key.name !== 'operatorsAliases') return;
+
+        if (property2.value.value === true) {
+          property2.value.value = 1;
+        } else if (property2.value.value === false) {
+          property2.value.value = 0;
+        }
+      });
+    });
+  },
 };

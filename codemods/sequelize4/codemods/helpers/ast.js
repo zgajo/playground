@@ -35,4 +35,12 @@ module.exports = {
       callee: { type: 'Identifier', name: 'require' },
     },
   }),
+
+  preparedSequelizeImportSearch: () => ({
+    init: {
+      type: 'CallExpression',
+      callee: { type: 'Identifier', name: 'require' },
+      arguments: [{ type: 'Literal', value: 'sequelize5' }],
+    },
+  }),
 };
