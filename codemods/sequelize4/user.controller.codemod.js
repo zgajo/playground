@@ -1,11 +1,11 @@
 const j = require('jscodeshift');
 const {
-  deprecatedSequelizeAliases,
-  SEQUELIZE_CAPITALIZED,
-  SEQUELIZE_LOWER_CASE,
-} = require('./codemods/helpers/constants');
+  preparedObjectUsageSearch,
+  preparedDestructureObjectUsageSearch,
+} = require('./codemods/helpers/ast');
 const { destructuringHelper } = require('./codemods/helpers/destructuring');
-const { changeDeprecatedModelMethods } = require('./codemods/helpers/model');
+const { directMethodUsageHelper } = require('./codemods/helpers/direct-usage');
+const { isDbImport } = require('./codemods/helpers/sequelize');
 
 /**
  * TODO: Should we add hooks deprecated changes?
@@ -14,12 +14,8 @@ const { changeDeprecatedModelMethods } = require('./codemods/helpers/model');
     const sequelize = db.sequelize
     const kk = sequelize.Op
 
-    const { Op } = db.sequelize
-
     This is also for the 
     const User = db["User"]
-    const { findOne } = db["User"]
-
  */
 
 module.exports = (fileInfo, api) => {
@@ -36,54 +32,23 @@ module.exports = (fileInfo, api) => {
       },
     })
     .forEach((node) => {
-      if (
-        (node.value.init.arguments[0].value &&
-          node.value.init.arguments[0].value.endsWith('/models')) ||
-        node.value.init.arguments[0].value.endsWith('/models/index') ||
-        node.value.init.arguments[0].value.endsWith('/models/readonly') ||
-        node.value.init.arguments[0].value.endsWith('/models/readonly-exports')
-      ) {
+      if (isDbImport(node.value.init.arguments[0].value)) {
         foundImports[node.value.id.name] = node;
       }
     });
 
   for (const key in foundImports) {
-    // Changing deprecated Model methods
+    // Changing directly used deprecated Model methods and sequelize instance
     root
-      .find(j.MemberExpression, {
-        object: {
-          type: 'MemberExpression',
-          object: {
-            name: key,
-          },
-        },
-      })
-      .forEach((node) => {
-        node.value.property.name = changeDeprecatedModelMethods(
-          node.value.property.name
-        );
-      });
+      // find all db
+      .find(j.MemberExpression, preparedObjectUsageSearch(key))
+      .forEach(directMethodUsageHelper);
 
-    // Changing deprecated Sequelize aliases
+    // Solves Destructured variables const { Op } = db.sequelize
     root
-      .find(j.MemberExpression, {
-        object: {
-          type: 'MemberExpression',
-          object: {
-            name: key,
-          },
-          property: {
-            name: SEQUELIZE_LOWER_CASE,
-          },
-        },
-      })
-      .forEach((node) => {
-        if (deprecatedSequelizeAliases.includes(node.value.property.name)) {
-          node.value.object.property.name = SEQUELIZE_CAPITALIZED;
-        }
-      });
-
-    destructuringHelper(root, key);
+      // Fetch all variables that are created with destructuring const { Op }  = ...
+      .find(j.VariableDeclarator, preparedDestructureObjectUsageSearch(key))
+      .forEach(destructuringHelper);
   }
 
   return root.toSource();
