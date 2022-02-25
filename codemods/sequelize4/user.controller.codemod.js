@@ -2,6 +2,7 @@ const j = require('jscodeshift');
 const {
   preparedObjectUsageSearch,
   preparedDestructureObjectUsageSearch,
+  preparedRequireImportSearch,
 } = require('./codemods/helpers/ast');
 const { destructuringHelper } = require('./codemods/helpers/destructuring');
 const { directMethodUsageHelper } = require('./codemods/helpers/direct-usage');
@@ -24,13 +25,9 @@ module.exports = (fileInfo, api) => {
 
   const foundImports = {};
 
+  /** */
   root
-    .find(j.VariableDeclarator, {
-      init: {
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'require' },
-      },
-    })
+    .find(j.VariableDeclarator, preparedRequireImportSearch())
     .forEach((node) => {
       if (isDbImport(node.value.init.arguments[0].value)) {
         foundImports[node.value.id.name] = node;

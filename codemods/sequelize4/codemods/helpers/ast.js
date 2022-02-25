@@ -25,4 +25,14 @@ module.exports = {
       object: { name: key },
     },
   }),
+  /**
+   *
+   * @returns object that will search all the require module imports
+   */
+  preparedRequireImportSearch: () => ({
+    init: {
+      type: 'CallExpression',
+      callee: { type: 'Identifier', name: 'require' },
+    },
+  }),
 };

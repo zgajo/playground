@@ -63,7 +63,7 @@ module.exports = {
   },
   /**
    *
-   * @param {*} value
+   * @param {*} value expects to be oneOf '/models', '/models/index', '/models/readonly', '/models/readonly-exports'
    * @returns boolean value of the import check
    */
   isDbImport: (value) => {

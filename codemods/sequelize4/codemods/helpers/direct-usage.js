@@ -10,7 +10,7 @@ const {
 /**
  *
  * @param {*} node
- * Controller for different kind of destructuring
+ * Changing directly used deprecated Model methods and sequelize instance
  *
  * Checks for model:
  *
