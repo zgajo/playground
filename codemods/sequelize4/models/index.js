@@ -1,66 +1,69 @@
 const fs = require("fs");
 const path = require("path");
-const Sequelize = require("sequelize5");
+const Sequelize = require("sequelize4");
 const basename = path.basename(__filename);
 
-const db = {}
+const db = {};
 
-console.log(db)
+console.log(db);
 
-const sequelize = new Sequelize('database', 'username', 'password', {
-  host: 'localhost',
-  dialect: 'sqlite',
+const sequelize = new Sequelize("database", "username", "password", {
+  host: "localhost",
+  dialect: "sqlite",
 
   pool: {
     max: 5,
     min: 0,
     acquire: 30000,
-    idle: 10000
+    idle: 10000,
   },
 
   // logging: console.log,
 
   // SQLite only
-  storage: './database.sqlite',
+  storage: "./database.sqlite",
 
   // http://docs.sequelizejs.com/manual/tutorial/querying.html#operators
-  operatorsAliases: false
+  operatorsAliases: false,
 });
 
-
 fs.readdirSync(__dirname)
-  .filter(file => {
-    return file.indexOf(".") !== 0 && file !== basename && file.slice(-3) === ".js" && file !== "readonly.js" && file !== "readonly-exports.js"
+  .filter((file) => {
+    return (
+      file.indexOf(".") !== 0 &&
+      file !== basename &&
+      file.slice(-3) === ".js" &&
+      file !== "readonly.js" &&
+      file !== "readonly-exports.js"
+    );
   })
-  .forEach(file => {
-    const model = sequelize["import"](path.join(__dirname, file))
-    db[model.name] = model
-  })
+  .forEach((file) => {
+    const model = sequelize["import"](path.join(__dirname, file));
+    db[model.name] = model;
+  });
 
-
-Object.keys(db).forEach(modelName => {
+Object.keys(db).forEach((modelName) => {
   if (db[modelName].associate) {
-    db[modelName].associate(db)
+    db[modelName].associate(db);
   }
-})
+});
 
-db.sequelize = sequelize
-db.Sequelize = Sequelize
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-sequelize.sync()
+sequelize
+  .sync()
   .then(async () => {
     const user = await db["User"].create({
       email: "sdds@wee.fds",
       country: "HRV",
-    })
+    });
 
-
-    return user
+    return user;
   })
-  .then(async user => {
+  .then(async (user) => {
     console.log(await db["User"].findAndCount());
     console.log(user.toJSON());
   });
 
-
-module.exports = db
+module.exports = db;

@@ -10,7 +10,15 @@ describe('Codemod for creating sequelize instance', () => {
     'sequelize4.transform.js',
     // Transform options. These are the custom options the transform
     // expects. This transform didn't use any custom options.
-    null,
+    {
+      sequelizeImport: {
+        init: {
+          type: 'CallExpression',
+          callee: { type: 'Identifier', name: 'require' },
+          arguments: [{ type: 'Literal', value: 'sequelize' }],
+        },
+      },
+    },
     // The name of the test fixtures. This will be suffixed with
     // input and output, including the extension.
     'models.index',

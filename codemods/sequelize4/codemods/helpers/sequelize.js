@@ -98,4 +98,15 @@ module.exports = {
       });
     });
   },
+  isConfigAndHasOperatorAlias: (node) => {
+    const hasSeederStorageProperty = !!node.properties.find(
+      (property) =>
+        property.key.name === 'seederStorage' &&
+        property.value.value === 'sequelize'
+    );
+    const hasOperatorAliasesProperty = !!node.properties.find(
+      (property) => property.key.name === 'operatorAliases'
+    );
+    return hasSeederStorageProperty && hasOperatorAliasesProperty;
+  },
 };

@@ -4,8 +4,8 @@
   "description": "[](https://www.toptal.com/javascript/write-code-to-rewrite-your-code)",
   "main": "deprecated.input.js",
   "scripts": {
-    "codemod": "npx jscodeshift -t sequelize4/sequelize4.transform.js sequelize4/models/index.js --dry --print",
-    "codemod:user:controller": "npx jscodeshift -t sequelize4/sequelize4.transform.js sequelize4/user.controller.js --dry --print"
+    "codemod": "npx jscodeshift -t sequelize4/codemods/sequelize4.transform.js sequelize4/models/index.js --dry --print",
+    "codemod:user:controller": "npx jscodeshift -t sequelize4/codemods/sequelize4.transform.js sequelize4/user.controller.js --dry --print"
   },
   "keywords": [],
   "author": "",
@@ -14,9 +14,10 @@
     "esm": "^3.2.25",
     "lodash": "^4.17.21",
     "recast": "^0.20.5",
-    "sequelize": "^4.44.4",
+    "sequelize": "^6.17.0",
     "sequelize4": "npm:sequelize@^4.44.4",
     "sequelize5": "npm:sequelize@^5.22.5",
+    "sequelize6": "npm:sequelize@^6.17.0",
     "sqlite3": "^5.0.2"
   },
   "devDependencies": {
