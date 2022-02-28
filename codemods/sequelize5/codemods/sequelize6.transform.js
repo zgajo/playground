@@ -5,30 +5,47 @@ module.exports = (fileInfo, api, options) => {
 
   root
     .find(j.CallExpression, (obj) => obj.callee?.property?.name === "spread")
+    .replaceWith((nodePath) => {
+      const { node } = nodePath;
+
+      node.callee.property.name = "then";
+
+      return node;
+    })
     .forEach((astPath) => {
-      const spreadFunction = astPath.value?.arguments[0];
+      const { node } = astPath;
+      // A function that is passed into a spread function
+      const spreadFunction = node.arguments[0];
 
       if (spreadFunction) {
         if (
           spreadFunction.type === "FunctionExpression" ||
           spreadFunction.type === "ArrowFunctionExpression"
         ) {
-          astPath.value.callee.property.name = "then";
-
           const spreadFunctionParams = spreadFunction.params.map((param) => {
-            return param.name;
+            return j.identifier(param.name);
           });
 
-          j.arrayPattern("test");
+          const arr = j.arrayPattern(spreadFunctionParams);
 
-          let test = j.variableDeclaration("const", [
-            j.variableDeclarator(j.identifier("test"), null),
-          ]);
-
-          spreadFunction.body.body = [test, ...spreadFunction.body.body];
+          spreadFunction.params = [arr];
         }
       }
     });
 
   return root.toSource();
 };
+
+// return root
+//   .find(j.ArrowFunctionExpression, {
+//     loc: {
+//       start: spreadFunction.loc.start,
+//       end: spreadFunction.loc.end,
+//     },
+//   })
+//   .replaceWith((nodePath) => {
+//     const { node } = nodePath;
+
+//     node.params = [arr];
+//     return node;
+//   });
