@@ -59,6 +59,7 @@ module.exports = (fileInfo, api, options) => {
 
           root
             // Find all variables where is sequelize.import or sequelize["import"] on the init side
+            // e.g. const model = sequelize.import(path.join(__dirname, file));
             .find(
               j.VariableDeclarator,
               (obj) =>
@@ -84,6 +85,7 @@ module.exports = (fileInfo, api, options) => {
                 ]
               );
 
+              // change the right side of the variable
               variableDeclarator.init = modelRequire;
 
               return nodePath;
