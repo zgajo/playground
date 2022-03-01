@@ -3,6 +3,7 @@ const j = require("jscodeshift");
 module.exports = (fileInfo, api, options) => {
   const root = j(fileInfo.source);
 
+  // find all .spread and change it with .then
   root
     .find(j.CallExpression, (obj) => obj.callee?.property?.name === "spread")
     .replaceWith((nodePath) => {
@@ -14,10 +15,11 @@ module.exports = (fileInfo, api, options) => {
     })
     .forEach((astPath) => {
       const { node } = astPath;
-      // A function that is passed into a spread function
+      // A callback function that is passed into a spread function
       const spreadFunction = node.arguments[0];
 
       if (spreadFunction) {
+        // destructure parameters in stream (row)=>{} ([row])=>{}
         if (
           spreadFunction.type === "FunctionExpression" ||
           spreadFunction.type === "ArrowFunctionExpression"
@@ -33,6 +35,7 @@ module.exports = (fileInfo, api, options) => {
       }
     });
 
+  // fetch all the require("sequelize") imports
   root
     .find(j.VariableDeclarator, {
       init: {
@@ -43,10 +46,11 @@ module.exports = (fileInfo, api, options) => {
     })
     .forEach((nodePath) => {
       const { node } = nodePath;
+      // name of the variable to which is module assigned to
       const sequelizeName = node.id.name;
 
       root
-        // searching new Sequelize()
+        // searching initialization of the imported class. e.g. new Sequelize()
         .find(j.VariableDeclarator, {
           init: { type: "NewExpression", callee: { name: sequelizeName } },
         })
@@ -54,10 +58,10 @@ module.exports = (fileInfo, api, options) => {
           const { node: initializedNode } = nodePath;
 
           root
+            // Find all variables where is sequelize.import or sequelize["import"] on the init side
             .find(
               j.VariableDeclarator,
               (obj) =>
-                // Check if  sequelize.import or sequelize["import"]
                 obj.init?.callee?.object?.name === initializedNode.id.name &&
                 (obj.init?.callee?.property?.value === "import" ||
                   obj.init?.callee?.property?.name === "import")
@@ -67,9 +71,9 @@ module.exports = (fileInfo, api, options) => {
 
               const pathJoinArgument = variableDeclarator.init.arguments[0];
 
-              // from: sequelize.import(path.join(__dirname, file));
-              // creating: require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
-              const t = j.callExpression(
+              // creating from: sequelize.import(path.join(__dirname, file));
+              // to: require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+              const modelRequire = j.callExpression(
                 j.callExpression(j.identifier("require"), [pathJoinArgument]),
                 [
                   j.identifier(initializedNode.id.name),
@@ -80,7 +84,7 @@ module.exports = (fileInfo, api, options) => {
                 ]
               );
 
-              variableDeclarator.init = t;
+              variableDeclarator.init = modelRequire;
 
               return nodePath;
             });
