@@ -95,17 +95,3 @@ module.exports = (fileInfo, api, options) => {
 
   return root.toSource();
 };
-
-// return root
-//   .find(j.ArrowFunctionExpression, {
-//     loc: {
-//       start: spreadFunction.loc.start,
-//       end: spreadFunction.loc.end,
-//     },
-//   })
-//   .replaceWith((nodePath) => {
-//     const { node } = nodePath;
-
-//     node.params = [arr];
-//     return node;
-//   });
