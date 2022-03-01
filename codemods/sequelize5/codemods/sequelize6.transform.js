@@ -33,6 +33,60 @@ module.exports = (fileInfo, api, options) => {
       }
     });
 
+  root
+    .find(j.VariableDeclarator, {
+      init: {
+        type: "CallExpression",
+        callee: { type: "Identifier", name: "require" },
+        arguments: [{ type: "Literal", value: "sequelize" }],
+      },
+    })
+    .forEach((nodePath) => {
+      const { node } = nodePath;
+      const sequelizeName = node.id.name;
+
+      root
+        // searching new Sequelize()
+        .find(j.VariableDeclarator, {
+          init: { type: "NewExpression", callee: { name: sequelizeName } },
+        })
+        .forEach((nodePath) => {
+          const { node: initializedNode } = nodePath;
+
+          root
+            .find(
+              j.VariableDeclarator,
+              (obj) =>
+                // Check if  sequelize.import or sequelize["import"]
+                obj.init?.callee?.object?.name === initializedNode.id.name &&
+                (obj.init?.callee?.property?.value === "import" ||
+                  obj.init?.callee?.property?.name === "import")
+            )
+            .forEach((variablePath) => {
+              const { node: variableDeclarator } = variablePath;
+
+              const pathJoinArgument = variableDeclarator.init.arguments[0];
+
+              // from: sequelize.import(path.join(__dirname, file));
+              // creating: require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+              const t = j.callExpression(
+                j.callExpression(j.identifier("require"), [pathJoinArgument]),
+                [
+                  j.identifier(initializedNode.id.name),
+                  j.memberExpression(
+                    j.identifier(sequelizeName),
+                    j.identifier("DataTypes")
+                  ),
+                ]
+              );
+
+              variableDeclarator.init = t;
+
+              return nodePath;
+            });
+        });
+    });
+
   return root.toSource();
 };
 
