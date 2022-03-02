@@ -1,39 +1,88 @@
 const j = require("jscodeshift");
+const _ = require("lodash");
+const { preparedRequireImportSearch } = require("./helpers/ast");
+const { isDbImport } = require("./helpers/sequelize");
+
+const isSearchedObjectName = (memberExpression, objName, objectLevel) => {
+  let obj = memberExpression.object;
+  while (obj) {
+    obj = obj.callee?.object;
+
+    if (_.get(obj, objectLevel) === objName) {
+      return true;
+    }
+  }
+};
+
+const spreadFnChange =
+  (root, objectNameLevel) =>
+  ({ node }) => {
+    const searchName = node.id.name;
+    // find all the spread expressions if they start with imported /models etc name.
+    // e.g for imported const db = require(./models)
+    // find db.Model.find().spread
+    root
+      .find(j.Identifier, (obj) => {
+        return obj.name === "spread";
+      })
+      .forEach((spreadPath) => {
+        const { node: parent } = spreadPath.parent;
+
+        // find spread that is used by found imports
+        if (isSearchedObjectName(parent, searchName, objectNameLevel)) {
+          spreadPath.value.name = "then";
+
+          const spreadFunction =
+            spreadPath.parentPath?.parentPath?.value?.arguments[0];
+
+          if (spreadFunction) {
+            // destructure parameters in stream (row)=>{} ([row])=>{}
+            if (
+              spreadFunction.type === "FunctionExpression" ||
+              spreadFunction.type === "ArrowFunctionExpression"
+            ) {
+              const spreadFunctionParams = spreadFunction.params.map(
+                (param) => {
+                  return j.identifier(param.name);
+                }
+              );
+
+              const arr = j.arrayPattern(spreadFunctionParams);
+
+              spreadFunction.params = [arr];
+            }
+          }
+        }
+      });
+  };
 
 module.exports = (fileInfo, api, options) => {
   const root = j(fileInfo.source);
 
-  // find all .spread and change it with .then
   root
-    .find(j.CallExpression, (obj) => obj.callee?.property?.name === "spread")
-    .replaceWith((nodePath) => {
-      const { node } = nodePath;
+    .find(j.VariableDeclarator, (nodePath) => {
+      // find require function keyword
+      const isRequireImport =
+        nodePath.init?.type === "CallExpression" &&
+        nodePath.init?.callee?.type === "Identifier" &&
+        nodePath.init?.callee?.name === "require";
 
-      node.callee.property.name = "then";
+      if (!isRequireImport) return;
 
-      return node;
+      // check if the import is /models etc...
+      if (!isDbImport(nodePath.init?.arguments[0]?.value)) return;
+
+      return nodePath;
     })
-    .forEach((astPath) => {
-      const { node } = astPath;
-      // A callback function that is passed into a spread function
-      const spreadFunction = node.arguments[0];
+    .forEach(spreadFnChange(root, "object.name"));
 
-      if (spreadFunction) {
-        // destructure parameters in stream (row)=>{} ([row])=>{}
-        if (
-          spreadFunction.type === "FunctionExpression" ||
-          spreadFunction.type === "ArrowFunctionExpression"
-        ) {
-          const spreadFunctionParams = spreadFunction.params.map((param) => {
-            return j.identifier(param.name);
-          });
-
-          const arr = j.arrayPattern(spreadFunctionParams);
-
-          spreadFunction.params = [arr];
-        }
-      }
-    });
+  root
+    .find(j.VariableDeclarator, (nodePath) => {
+      // This will check only if the .define is used.
+      // for something extra we could check the passed function parameters but currently this is complicating things
+      return nodePath.init?.callee?.property?.name === "define";
+    })
+    .forEach(spreadFnChange(root, "name"));
 
   // fetch all the require("sequelize") imports
   root
