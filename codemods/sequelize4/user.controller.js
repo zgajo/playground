@@ -1,8 +1,8 @@
-const db = require('./models');
+const db = require("./models");
 
 const fun = async () => {
   // deprecated methods
-  await db['User'].findAndCount();
+  await db["User"].findAndCount();
   await db.User.findAndCount();
 
   // deprecated Sequelize.prototype.Op
@@ -11,13 +11,9 @@ const fun = async () => {
   db.sequelize.Op;
 
   const { Op } = db.sequelize;
-  const { Model } = db['sequelize'];
+  const { Model } = db["sequelize"];
   const { findAndCount } = db.User;
-  const { insertOrUpdate } = db['User'];
-  const updateAttributes = db['User'].updateAttributes;
+  const { insertOrUpdate } = db["User"];
+  const updateAttributes = db["User"].updateAttributes;
   const findById = db.User.findById;
 };
-
-console.log(db.Sequelize.Op);
-
-console.log('first');

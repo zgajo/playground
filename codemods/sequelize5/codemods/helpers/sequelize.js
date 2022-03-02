@@ -2,7 +2,7 @@ const {
   DEPRECATED_SEQUELIZE_ALIASES,
   SEQUELIZE_CAPITALIZED,
   SEQUELIZE_LOWER_CASE,
-} = require('./constants');
+} = require("./constants");
 
 module.exports = {
   /**
@@ -68,10 +68,11 @@ module.exports = {
    */
   isDbImport: (value) => {
     return (
-      (value && value.endsWith('/models')) ||
-      value.endsWith('/models/index') ||
-      value.endsWith('/models/readonly') ||
-      value.endsWith('/models/readonly-exports')
+      value &&
+      (value.endsWith("/models") ||
+        value.endsWith("/models/index") ||
+        value.endsWith("/models/readonly") ||
+        value.endsWith("/models/readonly-exports"))
     );
   },
   /**
@@ -83,12 +84,12 @@ module.exports = {
     // Going through every argument in new Sequelize(bla, bla2, etc...)
     obj.value.arguments.forEach((property) => {
       // Searching only the object in arguments as there are multiple parameters.
-      if (property.type !== 'ObjectExpression') return;
+      if (property.type !== "ObjectExpression") return;
 
       property.properties.forEach((property2) => {
         // SOLUTION FOR: DeprecationWarning: A boolean value was passed to options.operatorsAliases. This is a no-op with v5 and should be removed
-        if (property2.type !== 'Property') return;
-        if (property2.key.name !== 'operatorsAliases') return;
+        if (property2.type !== "Property") return;
+        if (property2.key.name !== "operatorsAliases") return;
 
         if (property2.value.value === true) {
           property2.value.value = 1;
@@ -101,11 +102,11 @@ module.exports = {
   isConfigAndHasOperatorAlias: (node) => {
     const hasSeederStorageProperty = !!node.properties.find(
       (property) =>
-        property.key.name === 'seederStorage' &&
-        property.value.value === 'sequelize'
+        property.key.name === "seederStorage" &&
+        property.value.value === "sequelize"
     );
     const hasOperatorAliasesProperty = !!node.properties.find(
-      (property) => property.key.name === 'operatorAliases'
+      (property) => property.key.name === "operatorAliases"
     );
     return hasSeederStorageProperty && hasOperatorAliasesProperty;
   },
