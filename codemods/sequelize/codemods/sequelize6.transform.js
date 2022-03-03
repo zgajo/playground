@@ -170,6 +170,10 @@ module.exports = (fileInfo, api, options) => {
           // if sequelize if passed into function. e.g. getRealKycStatus(user, sequelize)
           else if (callFn.callee.name) {
             /* check if the function is created inside of the currently checked file */
+            /// check if the sequelize is passed into some other function
+
+            /// if  node then find the model and methods usage in the function
+
             // Check: const getRealKycStatus = ()=>{}
             const variableDeclarator = root.find(
               j.VariableDeclarator,
@@ -179,9 +183,10 @@ module.exports = (fileInfo, api, options) => {
                   declarator.init.type === "FunctionExpression")
             );
 
+            const sequelizeIndex = foundArgumentsIndex[index];
+
             if (variableDeclarator.length) {
               // work with this
-              const sequelizeIndex = foundArgumentsIndex[index];
 
               const sequelizeParamName =
                 variableDeclarator.get("init")?.value?.params[sequelizeIndex]
@@ -195,17 +200,25 @@ module.exports = (fileInfo, api, options) => {
             }
 
             // Check: const function getRealKycStatus (test){}
-            const functionDeclaration = root
-              .find(
-                j.FunctionDeclaration,
-                (declarator) => declarator.id.name === sequelizeName
-              )
-              .forEach(({ node: fn }) => {
-                fn.params;
-              });
+            const functionDeclaration = root.find(
+              j.FunctionDeclaration,
+              (declarator) => declarator.id.name === callFn.callee.name
+            );
 
-            /// check if the sequelize is passed into some other function
-            /// if  node then find the model and methods usage in the function
+            if (functionDeclaration.length) {
+              // work with this
+
+              const sequelizeParamName =
+                functionDeclaration.get("params")?.value[sequelizeIndex]?.name;
+
+              if (sequelizeParamName) {
+                spreadFnChange(functionDeclaration, "name", sequelizeParamName);
+              }
+
+              return;
+            }
+
+
             /* if not, then get require path from which is the fucntion imported */
             /// create the AST tree from that file and find the function export and the function declaration
           }
