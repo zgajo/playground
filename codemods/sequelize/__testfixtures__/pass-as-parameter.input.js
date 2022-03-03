@@ -2,7 +2,9 @@ const getRealKycStatus = (test, sequelize) => {
   sequelize.find().spread();
 };
 
-function getRealKycStatus2(test, sequelize) {}
+function getRealKycStatus2(test, sequelize) {
+  sequelize.find().spread();
+}
 
 const getRealKycStatus3 = function (test, sequelize) {
   sequelize.find().spread();

@@ -2,7 +2,9 @@ const getRealKycStatus = (test, sequelize) => {
   sequelize.find().then();
 };
 
-function getRealKycStatus2(test, sequelize) {}
+function getRealKycStatus2(test, sequelize) {
+  sequelize.find().then();
+}
 
 const getRealKycStatus3 = function (test, sequelize) {
   sequelize.find().then();
