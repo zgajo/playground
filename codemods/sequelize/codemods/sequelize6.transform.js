@@ -218,7 +218,6 @@ module.exports = (fileInfo, api, options) => {
               return;
             }
 
-
             /* if not, then get require path from which is the fucntion imported */
             /// create the AST tree from that file and find the function export and the function declaration
           }

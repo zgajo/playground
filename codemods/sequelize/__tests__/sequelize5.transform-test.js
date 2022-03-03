@@ -54,4 +54,12 @@ describe("Codemod Sequelize v4 to v5 transformer", () => {
     "user.controller.destructure",
     { parser: "babylon" }
   );
+
+  defineTest(
+    __dirname,
+    "codemods/sequelize4.transform.js",
+    null,
+    "passed-sequelize",
+    { parser: "babylon" }
+  );
 });
