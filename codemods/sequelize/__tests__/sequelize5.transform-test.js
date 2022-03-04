@@ -47,6 +47,10 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
     { parser: 'babylon' }
   );
 
+  defineTest(__dirname, 'codemods/sequelize5.transform.js', null, 'config', {
+    parser: 'babylon',
+  });
+
   defineTest(
     __dirname,
     'codemods/sequelize5.transform.js',

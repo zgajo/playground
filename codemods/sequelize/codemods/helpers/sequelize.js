@@ -98,6 +98,14 @@ module.exports = {
       });
     });
   },
+
+  /**
+   *
+   * @param {*} node
+   * @returns boolean
+   * Checks if the object has key seederStorage with value sequelize
+   * We are treating that object as sequelize config object
+   */
   isConfigAndHasOperatorAlias: (node) => {
     const hasSeederStorageProperty = !!node.properties.find(
       (property) =>
@@ -108,5 +116,19 @@ module.exports = {
       (property) => property.key.name === 'operatorAliases'
     );
     return hasSeederStorageProperty && hasOperatorAliasesProperty;
+  },
+
+  changeConfigOperatorAlias: (node) => {
+    const property = node.value.properties.find(
+      (property) => property.key.name === 'operatorAliases'
+    );
+
+    if (property) {
+      if (property.value.value === true) {
+        property.value.value = 1;
+      } else if (property.value.value === false) {
+        property.value.value = 0;
+      }
+    }
   },
 };
