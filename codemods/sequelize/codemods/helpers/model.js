@@ -1,3 +1,5 @@
+const j = require('jscodeshift');
+const { isModelsRequireImport } = require('./ast');
 const { SEQUELIZE_CAPITALIZED } = require('./constants');
 
 // Model - Removed aliases https://sequelize.org/v5/manual/upgrade-to-v5.html
@@ -79,5 +81,13 @@ module.exports = {
 
       return true;
     }
+  },
+  modelsImportFile: (root) => {
+    root.find(j.VariableDeclarator, isModelsRequireImport).forEach((node) => {
+      // Changing directly used deprecated Model methods and sequelize instance
+      solveEveryDirectModelsUsage(root, node.value.id.name);
+      // Solves Destructured variables const { Op } = db.sequelize
+      solveDestructureObject(root, node.value.id.name);
+    });
   },
 };

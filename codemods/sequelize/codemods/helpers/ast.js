@@ -42,7 +42,7 @@ module.exports = {
     return isDbImport(node.init?.arguments[0]?.value);
   },
 
-  preparedSequelizeImportSearch: () => ({
+  sequelizeImportSearch: () => ({
     init: {
       type: 'CallExpression',
       callee: { type: 'Identifier', name: 'require' },

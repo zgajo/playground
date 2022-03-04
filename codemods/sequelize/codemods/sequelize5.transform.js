@@ -3,7 +3,7 @@ const {
   preparedObjectUsageSearch,
   preparedDestructureObjectUsageSearch,
   isModelsRequireImport,
-  preparedSequelizeImportSearch,
+  sequelizeImportSearch,
 } = require('./helpers/ast');
 const { SEQUELIZE_LOWER_CASE } = require('./helpers/constants');
 const {
@@ -22,6 +22,7 @@ const {
   changeConfigOperatorAlias,
   isVariableReassignement,
 } = require('./helpers/sequelize');
+const Sequelize5 = require('./helpers/sequelize5');
 
 /**
  * TODO: Should we add hooks deprecated changes?
@@ -37,59 +38,19 @@ const {
 module.exports = (fileInfo, api, options) => {
   const root = j(fileInfo.source);
 
-  try {
-    /**
-     * Changing Sequelize initaialization file
-     */
-    const sequelizeVariableDeclarator = root.find(
-      j.VariableDeclarator,
-      options.sequelizeImport || preparedSequelizeImportSearch()
-    );
+  const transformer = new Sequelize5(root);
 
-    // Grab the name of the imported sequelize module
-    sequelizeVariableDeclarator.find(j.Identifier).forEach((node) => {
-      // search for imported module name instance creation
-      root
-        .find(j.NewExpression, {
-          callee: { name: node.value.name },
-        })
-        .forEach(changeSequelizeCreationOperatorsAliasesProperty);
-    });
+  transformer.handleSequelizeProperty();
 
-    /**
-     * Checking for the sequelize object files
-     */
-    root
-      .find(j.ObjectExpression, isConfigAndHasOperatorAlias)
-      .forEach(changeConfigOperatorAlias);
+  transformer.handleConfigObject();
 
-    /******************** END Changing Sequelize initaialization file ********************/
+  /******************** END Changing Sequelize initaialization file ********************/
 
-    // Find all "./models" and work with that variable name
-    root.find(j.VariableDeclarator, isModelsRequireImport).forEach((node) => {
-      // Changing directly used deprecated Model methods and sequelize instance
-      solveEveryDirectModelsUsage(root, node.value.id.name);
-      // Solves Destructured variables const { Op } = db.sequelize
-      solveDestructureObject(root, node.value.id.name);
-    });
+  transformer.handleImportedInitializedInstance();
 
-    // Find the sequelize.models and go through its every property
-    solveEveryDirectModelsUsage(root, SEQUELIZE_LOWER_CASE, 'models');
+  transformer.handleDirectSequelizeUsage();
 
-    // Find all sequlize.Op, sequelize.Model usages
-    solveEveryDirectSequlizeUsage(root, SEQUELIZE_LOWER_CASE);
-
-    // find all sequelize re assignmenets, const sequelize = row.sequelize, we are seqrching by variable and the last part .sequelize
-    root
-      .find(j.VariableDeclarator, isVariableReassignement)
-      .forEach((nodePath) => {
-        // Find the sequelize.models and go through its every property
-        solveEveryDirectModelsUsage(root, nodePath.node.id.name, 'models');
-        solveEveryDirectSequlizeUsage(root, nodePath.node.id.name);
-      });
-  } catch (error) {
-    console.log('error', error);
-  }
+  transformer.handleReAssignedSequelize();
 
   return root.toSource({ quote: 'single' });
 };
