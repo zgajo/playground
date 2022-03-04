@@ -5,16 +5,12 @@ const {
   preparedRequireImportSearch,
   preparedSequelizeImportSearch,
 } = require('./helpers/ast');
-const {
-  SEQUELIZE_LOWER_CASE,
-  DEPRECATED_MODEL_METHODS,
-  DEPRECATED_SEQUELIZE_ALIASES,
-  SEQUELIZE_CAPITALIZED,
-} = require('./helpers/constants');
+const { SEQUELIZE_LOWER_CASE } = require('./helpers/constants');
 const { destructuringHelper } = require('./helpers/destructuring');
 const {
-  directMethodUsageHelper,
   searchForObjectProperties,
+  solveEveryDirectModelsUsage,
+  solveEveryDirectSequlizeUsage,
 } = require('./helpers/direct-usage');
 const {
   isDbImport,
@@ -104,53 +100,24 @@ module.exports = (fileInfo, api, options) => {
       });
 
     // Find the sequelize.models and go through its every property
-    root
-      .find(
-        j.MemberExpression,
-        (obj) =>
-          obj.object.name === SEQUELIZE_LOWER_CASE &&
-          obj.property.name === 'models'
-      )
-      .forEach(searchForObjectProperties);
+    solveEveryDirectModelsUsage(root, SEQUELIZE_LOWER_CASE);
 
+    // Find all sequlize.Op, sequelize.Model usages
+    solveEveryDirectSequlizeUsage(root, SEQUELIZE_LOWER_CASE);
+
+    // find all sequelize re assignmenets, const sequelize = row.sequelize, we are seqrching by variable and the last part .sequelize
     root
-      .find(
-        j.MemberExpression,
-        (obj) =>
-          obj.object.name === SEQUELIZE_LOWER_CASE &&
-          DEPRECATED_SEQUELIZE_ALIASES.includes(obj.property.name)
-      )
+      .find(j.VariableDeclarator, (obj) => {
+        return (
+          obj.id.type === 'Identifier' &&
+          (obj.init?.property?.name === SEQUELIZE_LOWER_CASE ||
+            obj.init?.property?.value === SEQUELIZE_LOWER_CASE)
+        );
+      })
       .forEach((nodePath) => {
-        // Check if const Sequelize = require("sequelize") exists
-        const sequelizeUsed = root.find(j.VariableDeclarator, {
-          id: {
-            name: SEQUELIZE_CAPITALIZED,
-          },
-          init: {
-            type: 'CallExpression',
-            callee: { type: 'Identifier', name: 'require' },
-            arguments: [{ type: 'Literal', value: 'sequelize' }],
-          },
-        });
-
-        // insert sequelize to the first line
-        if (!sequelizeUsed.length) {
-          const sequelizeVariable = j.variableDeclaration('const', [
-            j.variableDeclarator(
-              j.identifier(SEQUELIZE_CAPITALIZED),
-              j.callExpression(j.identifier('require'), [
-                j.literal('sequelize'),
-              ])
-            ),
-          ]);
-
-          // set the sequelize import to the first line
-          root.get().node.program.body.unshift(sequelizeVariable);
-        }
-
-        nodePath.node.object.name = SEQUELIZE_CAPITALIZED;
-
-        return nodePath.node;
+        // Find the sequelize.models and go through its every property
+        solveEveryDirectModelsUsage(root, nodePath.node.id.name);
+        solveEveryDirectSequlizeUsage(root, nodePath.node.id.name);
       });
   } catch (error) {
     console.log('error', error);

@@ -1,15 +1,18 @@
+const j = require('jscodeshift');
+
 const {
   DEPRECATED_MODEL_METHODS,
   DEPRECATED_SEQUELIZE_ALIASES,
-} = require("./constants");
+  SEQUELIZE_CAPITALIZED,
+} = require('./constants');
 const {
   changeModelPropertyName,
   changeModelPropertyValue,
-} = require("./model");
+} = require('./model');
 const {
   changeSequelizePropertyName,
   changeSequelizePropertyValue,
-} = require("./sequelize");
+} = require('./sequelize');
 
 /**
  *
@@ -37,6 +40,21 @@ const directMethodUsageHelper = (node) => {
   else if (changeModelPropertyValue(node)) return;
 };
 
+/**
+ *
+ * @param {*} root
+ * @param {*} name name of the object that has models property, e.g. sequelize, db will loog for sequelize.models or db.models
+ * Searching for the models used and changing deprecated Models methods
+ */
+module.exports.solveEveryDirectModelsUsage = (root, name) => {
+  root
+    .find(
+      j.MemberExpression,
+      (obj) => obj.object.name === name && obj.property.name === 'models'
+    )
+    .forEach(this.searchForObjectProperties);
+};
+
 module.exports.directMethodUsageHelper = directMethodUsageHelper;
 
 module.exports.searchForObjectProperties = (memberPath) => {
@@ -44,14 +62,14 @@ module.exports.searchForObjectProperties = (memberPath) => {
 
   while (currentMemberPath) {
     // This is a call expression of the method
-    if (currentMemberPath.value.type === "CallExpression") {
+    if (currentMemberPath.value.type === 'CallExpression') {
       currentMemberPath = currentMemberPath.parent;
 
       continue;
     }
 
     // We are done when we are not in the object anymore
-    if (currentMemberPath.value.type !== "MemberExpression") break;
+    if (currentMemberPath.value.type !== 'MemberExpression') break;
 
     const propertyName =
       currentMemberPath.value.property.name ||
@@ -66,4 +84,48 @@ module.exports.searchForObjectProperties = (memberPath) => {
 
     currentMemberPath = currentMemberPath.parent;
   }
+};
+
+/**
+ *
+ * @param {*} root
+ * @param {*} name name of the object that has models property, e.g. sequelize, db will loog for sequelize.models or db.models
+ * Searching for the models used and changing deprecated Models methods
+ */
+module.exports.solveEveryDirectSequlizeUsage = (root, name) => {
+  root
+    .find(
+      j.MemberExpression,
+      (obj) =>
+        obj.object.name === name &&
+        DEPRECATED_SEQUELIZE_ALIASES.includes(obj.property.name)
+    )
+    .forEach((nodePath) => {
+      // Check if const Sequelize = require("sequelize") exists
+      const sequelizeUsed = root.find(j.VariableDeclarator, {
+        id: {
+          name: SEQUELIZE_CAPITALIZED,
+        },
+        init: {
+          type: 'CallExpression',
+          callee: { type: 'Identifier', name: 'require' },
+          arguments: [{ type: 'Literal', value: 'sequelize' }],
+        },
+      });
+
+      // insert sequelize import to the first line
+      if (!sequelizeUsed.length) {
+        const sequelizeVariable = j.variableDeclaration('const', [
+          j.variableDeclarator(
+            j.identifier(SEQUELIZE_CAPITALIZED),
+            j.callExpression(j.identifier('require'), [j.literal('sequelize')])
+          ),
+        ]);
+
+        // set the sequelize import to the first line
+        root.get().node.program.body.unshift(sequelizeVariable);
+      }
+
+      nodePath.node.object.name = SEQUELIZE_CAPITALIZED;
+    });
 };
