@@ -6,7 +6,7 @@ module.exports = {
    */
   preparedObjectUsageSearch: (key) => ({
     object: {
-      type: 'MemberExpression',
+      type: "MemberExpression",
       object: {
         name: key,
       },
@@ -19,7 +19,7 @@ module.exports = {
    */
   preparedDestructureObjectUsageSearch: (key) => ({
     id: {
-      type: 'ObjectPattern',
+      type: "ObjectPattern",
     },
     init: {
       object: { name: key },
@@ -31,16 +31,16 @@ module.exports = {
    */
   preparedRequireImportSearch: () => ({
     init: {
-      type: 'CallExpression',
-      callee: { type: 'Identifier', name: 'require' },
+      type: "CallExpression",
+      callee: { type: "Identifier", name: "require" },
     },
   }),
 
   preparedSequelizeImportSearch: () => ({
     init: {
-      type: 'CallExpression',
-      callee: { type: 'Identifier', name: 'require' },
-      arguments: [{ type: 'Literal', value: 'sequelize5' }],
+      type: "CallExpression",
+      callee: { type: "Identifier", name: "require" },
+      arguments: [{ type: "Literal", value: "sequelize" }],
     },
   }),
 };

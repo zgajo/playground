@@ -1,24 +1,26 @@
-const j = require("jscodeshift");
+const j = require('jscodeshift');
 const {
   preparedObjectUsageSearch,
   preparedDestructureObjectUsageSearch,
   preparedRequireImportSearch,
   preparedSequelizeImportSearch,
-} = require("./helpers/ast");
+} = require('./helpers/ast');
 const {
   SEQUELIZE_LOWER_CASE,
   DEPRECATED_MODEL_METHODS,
-} = require("./helpers/constants");
-const { destructuringHelper } = require("./helpers/destructuring");
+  DEPRECATED_SEQUELIZE_ALIASES,
+  SEQUELIZE_CAPITALIZED,
+} = require('./helpers/constants');
+const { destructuringHelper } = require('./helpers/destructuring');
 const {
   directMethodUsageHelper,
   searchForObjectProperties,
-} = require("./helpers/direct-usage");
+} = require('./helpers/direct-usage');
 const {
   isDbImport,
   changeSequelizeCreationOperatorsAliasesProperty,
   isConfigAndHasOperatorAlias,
-} = require("./helpers/sequelize");
+} = require('./helpers/sequelize');
 
 /**
  * TODO: Should we add hooks deprecated changes?
@@ -62,7 +64,7 @@ module.exports = (fileInfo, api, options) => {
       .find(j.ObjectExpression, isConfigAndHasOperatorAlias)
       .forEach((object) => {
         const property = object.value.properties.find(
-          (property) => property.key.name === "operatorAliases"
+          (property) => property.key.name === 'operatorAliases'
         );
 
         if (property) {
@@ -107,12 +109,52 @@ module.exports = (fileInfo, api, options) => {
         j.MemberExpression,
         (obj) =>
           obj.object.name === SEQUELIZE_LOWER_CASE &&
-          obj.property.name === "models"
+          obj.property.name === 'models'
       )
       .forEach(searchForObjectProperties);
+
+    root
+      .find(
+        j.MemberExpression,
+        (obj) =>
+          obj.object.name === SEQUELIZE_LOWER_CASE &&
+          DEPRECATED_SEQUELIZE_ALIASES.includes(obj.property.name)
+      )
+      .forEach((nodePath) => {
+        // Check if const Sequelize = require("sequelize") exists
+        const sequelizeUsed = root.find(j.VariableDeclarator, {
+          id: {
+            name: SEQUELIZE_CAPITALIZED,
+          },
+          init: {
+            type: 'CallExpression',
+            callee: { type: 'Identifier', name: 'require' },
+            arguments: [{ type: 'Literal', value: 'sequelize' }],
+          },
+        });
+
+        // insert sequelize to the first line
+        if (!sequelizeUsed.length) {
+          const sequelizeVariable = j.variableDeclaration('const', [
+            j.variableDeclarator(
+              j.identifier(SEQUELIZE_CAPITALIZED),
+              j.callExpression(j.identifier('require'), [
+                j.literal('sequelize'),
+              ])
+            ),
+          ]);
+
+          // set the sequelize import to the first line
+          root.get().node.program.body.unshift(sequelizeVariable);
+        }
+
+        nodePath.node.object.name = SEQUELIZE_CAPITALIZED;
+
+        return nodePath.node;
+      });
   } catch (error) {
-    console.log("error", error);
+    console.log('error', error);
   }
 
-  return root.toSource({ quote: "single" });
+  return root.toSource({ quote: 'single' });
 };

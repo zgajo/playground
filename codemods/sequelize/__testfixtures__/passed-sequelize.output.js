@@ -1,5 +1,4 @@
-const Sequelize = require("sequelize");
-
+const Sequelize = require('sequelize');
 module.exports = {
   findAllAndCountAuditLogsForInstance: async function (
     instanceId,
@@ -16,7 +15,7 @@ module.exports = {
       },
       offset: pagination.offset,
       limit: pagination.limit,
-      order: [["date", "DESC"]],
+      order: [['date', 'DESC']],
     });
   },
 };
