@@ -7,7 +7,7 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
     // load the transform and test fixtures.
     __dirname,
     // The name of the transform's filename (excluding extension).
-    'codemods/sequelize4.transform.js',
+    'codemods/sequelize5.transform.js',
     // Transform options. These are the custom options the transform
     // expects. This transform didn't use any custom options.
     {
@@ -34,7 +34,7 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
     // load the transform and test fixtures.
     __dirname,
     // The name of the transform's filename (excluding extension).
-    'codemods/sequelize4.transform.js',
+    'codemods/sequelize5.transform.js',
     // Transform options. These are the custom options the transform
     // expects. This transform didn't use any custom options.
     null,
@@ -49,7 +49,7 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
 
   defineTest(
     __dirname,
-    'codemods/sequelize4.transform.js',
+    'codemods/sequelize5.transform.js',
     null,
     'user.controller.destructure',
     { parser: 'babylon' }
@@ -57,7 +57,7 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
 
   defineTest(
     __dirname,
-    'codemods/sequelize4.transform.js',
+    'codemods/sequelize5.transform.js',
     null,
     'passed-sequelize',
     { parser: 'babylon' }
@@ -65,7 +65,7 @@ describe('Codemod Sequelize v4 to v5 transformer', () => {
 
   defineTest(
     __dirname,
-    'codemods/sequelize4.transform.js',
+    'codemods/sequelize5.transform.js',
     null,
     'sequelize-to-variable',
     { parser: 'babylon' }
