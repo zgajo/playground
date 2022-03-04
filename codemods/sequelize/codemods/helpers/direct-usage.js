@@ -43,15 +43,24 @@ const directMethodUsageHelper = (node) => {
 /**
  *
  * @param {*} root
- * @param {*} name name of the object that has models property, e.g. sequelize, db will loog for sequelize.models or db.models
+ * @param {*} name - name of the object that has models property, e.g. sequelize, db will loog for sequelize.models or db.models.
+ * @param {*} nextProperty - the next property that we want to search for, example for sequelize.models, nextProperty should be models.
+ *
  * Searching for the models used and changing deprecated Models methods
  */
-module.exports.solveEveryDirectModelsUsage = (root, name) => {
+module.exports.solveEveryDirectModelsUsage = (root, name, nextProperty) => {
   root
-    .find(
-      j.MemberExpression,
-      (obj) => obj.object.name === name && obj.property.name === 'models'
-    )
+    .find(j.MemberExpression, (obj) => {
+      const foundObject = obj.object.name === name;
+
+      if (!foundObject) return false;
+
+      if (nextProperty) {
+        return obj.property.name === nextProperty;
+      }
+
+      return true;
+    })
     .forEach(this.searchForObjectProperties);
 };
 

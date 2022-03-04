@@ -1,4 +1,5 @@
 const j = require('jscodeshift');
+const { preparedDestructureObjectUsageSearch } = require('./ast');
 const {
   deprecatedSequelizeAliases,
   SEQUELIZE_CAPITALIZED,
@@ -35,3 +36,9 @@ module.exports.destructuringHelper = (node) => {
   // Check for the db.someModel or  db["someModel"]
   else if (changeDestructuredModelKey(node)) return;
 };
+
+module.exports.solveDestructureObject = (root, name) =>
+  root
+    // Fetch all variables that are created with destructuring const { Op }  = ...
+    .find(j.VariableDeclarator, preparedDestructureObjectUsageSearch(name))
+    .forEach(this.destructuringHelper);

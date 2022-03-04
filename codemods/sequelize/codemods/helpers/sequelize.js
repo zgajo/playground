@@ -99,6 +99,14 @@ module.exports = {
     });
   },
 
+  isVariableReassignement: (obj) => {
+    return (
+      obj.id.type === 'Identifier' &&
+      (obj.init?.property?.name === SEQUELIZE_LOWER_CASE ||
+        obj.init?.property?.value === SEQUELIZE_LOWER_CASE)
+    );
+  },
+
   /**
    *
    * @param {*} node

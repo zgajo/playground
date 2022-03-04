@@ -1,3 +1,5 @@
+const { isDbImport } = require('./sequelize');
+
 module.exports = {
   /**
    *
@@ -6,7 +8,7 @@ module.exports = {
    */
   preparedObjectUsageSearch: (key) => ({
     object: {
-      type: "MemberExpression",
+      type: 'MemberExpression',
       object: {
         name: key,
       },
@@ -19,7 +21,7 @@ module.exports = {
    */
   preparedDestructureObjectUsageSearch: (key) => ({
     id: {
-      type: "ObjectPattern",
+      type: 'ObjectPattern',
     },
     init: {
       object: { name: key },
@@ -27,20 +29,24 @@ module.exports = {
   }),
   /**
    *
-   * @returns object that will search all the require module imports
+   * @returns boolean
+   * Checks if there is "./models" import
    */
-  preparedRequireImportSearch: () => ({
-    init: {
-      type: "CallExpression",
-      callee: { type: "Identifier", name: "require" },
-    },
-  }),
+  isModelsRequireImport: (node) => {
+    const isRequireImport =
+      node.init?.type === 'CallExpression' &&
+      node.init?.callee?.name === 'require';
+
+    if (!isRequireImport) return false;
+
+    return isDbImport(node.init?.arguments[0]?.value);
+  },
 
   preparedSequelizeImportSearch: () => ({
     init: {
-      type: "CallExpression",
-      callee: { type: "Identifier", name: "require" },
-      arguments: [{ type: "Literal", value: "sequelize" }],
+      type: 'CallExpression',
+      callee: { type: 'Identifier', name: 'require' },
+      arguments: [{ type: 'Literal', value: 'sequelize' }],
     },
   }),
 };

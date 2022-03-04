@@ -2,11 +2,14 @@ const j = require('jscodeshift');
 const {
   preparedObjectUsageSearch,
   preparedDestructureObjectUsageSearch,
-  preparedRequireImportSearch,
+  isModelsRequireImport,
   preparedSequelizeImportSearch,
 } = require('./helpers/ast');
 const { SEQUELIZE_LOWER_CASE } = require('./helpers/constants');
-const { destructuringHelper } = require('./helpers/destructuring');
+const {
+  destructuringHelper,
+  solveDestructureObject,
+} = require('./helpers/destructuring');
 const {
   searchForObjectProperties,
   solveEveryDirectModelsUsage,
@@ -16,6 +19,8 @@ const {
   isDbImport,
   changeSequelizeCreationOperatorsAliasesProperty,
   isConfigAndHasOperatorAlias,
+  changeConfigOperatorAlias,
+  isVariableReassignement,
 } = require('./helpers/sequelize');
 
 /**
@@ -51,72 +56,35 @@ module.exports = (fileInfo, api, options) => {
         .forEach(changeSequelizeCreationOperatorsAliasesProperty);
     });
 
-    /******************** END Changing Sequelize initaialization file ********************/
-
     /**
      * Checking for the sequelize object files
      */
     root
       .find(j.ObjectExpression, isConfigAndHasOperatorAlias)
-      .forEach((object) => {
-        const property = object.value.properties.find(
-          (property) => property.key.name === 'operatorAliases'
-        );
+      .forEach(changeConfigOperatorAlias);
 
-        if (property) {
-          if (property.value.value === true) {
-            property.value.value = 1;
-          } else if (property.value.value === false) {
-            property.value.value = 0;
-          }
-        }
-      });
+    /******************** END Changing Sequelize initaialization file ********************/
 
-    /**
-     * Working with created instance
-     */
-    root
-      .find(j.VariableDeclarator, preparedRequireImportSearch())
-      .forEach((node) => {
-        if (isDbImport(node.value.init.arguments[0].value)) {
-          // Changing directly used deprecated Model methods and sequelize instance
-          root
-            // find all db
-            .find(
-              j.MemberExpression,
-              preparedObjectUsageSearch(node.value.id.name)
-            )
-            .forEach(searchForObjectProperties);
-
-          // Solves Destructured variables const { Op } = db.sequelize
-          root
-            // Fetch all variables that are created with destructuring const { Op }  = ...
-            .find(
-              j.VariableDeclarator,
-              preparedDestructureObjectUsageSearch(node.value.id.name)
-            )
-            .forEach(destructuringHelper);
-        }
-      });
+    // Find all "./models" and work with that variable name
+    root.find(j.VariableDeclarator, isModelsRequireImport).forEach((node) => {
+      // Changing directly used deprecated Model methods and sequelize instance
+      solveEveryDirectModelsUsage(root, node.value.id.name);
+      // Solves Destructured variables const { Op } = db.sequelize
+      solveDestructureObject(root, node.value.id.name);
+    });
 
     // Find the sequelize.models and go through its every property
-    solveEveryDirectModelsUsage(root, SEQUELIZE_LOWER_CASE);
+    solveEveryDirectModelsUsage(root, SEQUELIZE_LOWER_CASE, 'models');
 
     // Find all sequlize.Op, sequelize.Model usages
     solveEveryDirectSequlizeUsage(root, SEQUELIZE_LOWER_CASE);
 
     // find all sequelize re assignmenets, const sequelize = row.sequelize, we are seqrching by variable and the last part .sequelize
     root
-      .find(j.VariableDeclarator, (obj) => {
-        return (
-          obj.id.type === 'Identifier' &&
-          (obj.init?.property?.name === SEQUELIZE_LOWER_CASE ||
-            obj.init?.property?.value === SEQUELIZE_LOWER_CASE)
-        );
-      })
+      .find(j.VariableDeclarator, isVariableReassignement)
       .forEach((nodePath) => {
         // Find the sequelize.models and go through its every property
-        solveEveryDirectModelsUsage(root, nodePath.node.id.name);
+        solveEveryDirectModelsUsage(root, nodePath.node.id.name, 'models');
         solveEveryDirectSequlizeUsage(root, nodePath.node.id.name);
       });
   } catch (error) {
