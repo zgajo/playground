@@ -1,0 +1,8 @@
+[
+  {
+    "EventBusName": "nps-event-bus",
+    "Source": "nps-event-bus.system",
+    "DetailType": "Order Status Update",
+    "Detail": "{ \"order-id\": \"123\", \"status\": \"SHIPPED\", \"previous-status\": \"IN_PROGRESS\" }"
+  }
+]
